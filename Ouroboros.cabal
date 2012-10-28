@@ -1,0 +1,19 @@
+name:           Ouroboros
+version:        0.1
+cabal-version:  >= 1.2
+build-type:     Simple
+author:         wacca
+
+executable Ouroboros
+  hs-source-dirs:  src
+  main-is:         Main.hs
+  build-depends:   base >= 4,
+                   parsec
+  ghc-options:     -Wall
+  other-modules:   Ouroboros.Language,
+                   Ouroboros.Parser,
+                   Ouroboros.Scheme.Definition
+                   Ouroboros.Scheme.FromScheme
+                   Ouroboros.Scheme.ToScheme
+                   Ouroboros.Scheme
+

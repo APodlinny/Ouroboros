@@ -1,0 +1,14 @@
+name:           Ouroboros
+version:        0.1
+cabal-version:  >= 1.2
+build-type:     Simple
+author:         wacca
+
+executable Ouroboros
+  hs-source-dirs:  src
+  main-is:         Main.hs
+  build-depends:   base >= 4,
+				   text-format-simple
+  ghc-options:     -Wall
+  other-modules:   Ouroboros.Language
+

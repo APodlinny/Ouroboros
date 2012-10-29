@@ -12,7 +12,11 @@ programToScheme program = 	if validateProgram program then
 								Scheme {
 									name 			= getName program,
 									bindings 		= getBindings program,
-									nodeDefinitions = getNodeDefinitions program
+									nodeDefinitions = getNodeDefinitions program,
+									primaryIOs		= 	map nodeName $ 
+														filter (\def -> nodeType def == OUTPUT || 
+																		nodeType def == INPUT) $ 
+														getNodeDefinitions program
 								}
 							else
 								error "Program is not valid."

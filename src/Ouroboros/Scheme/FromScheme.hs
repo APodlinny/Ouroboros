@@ -9,7 +9,7 @@ programFromScheme :: Scheme.Scheme -> Program
 programFromScheme scheme = Program textLines
 	where
 		textLines = (Comment $ Scheme.name scheme) :
-					codeLines
+					((primaryIOsComments scheme) ++ codeLines)
 		codeLines = map (\c -> Code c Empty) commands
 		commands  = (getIOPorts scheme) ++
 					(getDefinitions scheme)
@@ -29,7 +29,7 @@ getDefinitions scheme = result
 	where
 		cmds = Scheme.nodeDefinitions scheme
 		defs = filter (\d -> (Scheme.nodeType d /= Scheme.INPUT) &&
-							(Scheme.nodeType d /= Scheme.OUTPUT)) cmds
+							 (Scheme.nodeType d /= Scheme.OUTPUT)) cmds
 
 		toDefinition nodeDef = Definition (Scheme.nodeName nodeDef) $ 
 			expressionFor (Scheme.bindings scheme) nodeDef
@@ -57,3 +57,9 @@ makeExpression Scheme.XOR  [a, b] = XOR  a b
 makeExpression Scheme.BUF     [a] = BUF  a
 makeExpression Scheme.NOT     [a] = NOT  a
 makeExpression Scheme.DELAY   [a] = DELAY  a
+
+primaryIOsComments :: Scheme.Scheme -> [TextLine]
+primaryIOsComments scheme = Comment "Primary IOs:" : ios ++ [Empty]
+	where
+		schemeIOs = Scheme.primaryIOs scheme
+		ios = map (\(Identifier str) -> Comment str) schemeIOs

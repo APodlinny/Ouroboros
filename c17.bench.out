@@ -1,10 +1,18 @@
 #  test with simple recursion
+# Primary IOs:
+# x
+# y
+
 input(__x)
 input(_x)
 input(x)
-output(z_0)
-output(z_1)
+output(______x)
+output(____x)
 output(y)
+______x = and(z_1, _____x)
+_____x = not(z_1)
+____x = and(z_0, ___x)
+___x = not(z_0)
 y = and(x, _x)
 z_1 = not(z_0)
 z_0 = and(y, __x)

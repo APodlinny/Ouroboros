@@ -13,9 +13,11 @@ executable Ouroboros
   ghc-options:     -Wall -fno-warn-unused-do-bind
   other-modules:   Ouroboros.Language,
                    Ouroboros.Parser,
+                   Ouroboros.Scheme
                    Ouroboros.Scheme.Definition
                    Ouroboros.Scheme.FromScheme
                    Ouroboros.Scheme.ToScheme
-                   Ouroboros.Scheme
-                   Ouroboros.Common
+                   Ouroboros.Scheme.Deafen
+                   Ouroboros.Scheme.RemoveRecursion
+                   Ouroboros.Scheme.Common
 

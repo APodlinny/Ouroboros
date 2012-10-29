@@ -1,11 +1,12 @@
 module Ouroboros.Scheme.Definition (
 	Scheme(..),
-	Identifier(..),
+	--Identifier(..),
 	NodeDefinition(..),
 	NodeType(..),
 	Binding(..),
 	inputId,
-	outputId
+	outputId,
+	AST.Identifier(..)
 ) where
 
 import qualified Ouroboros.Language as AST
@@ -13,7 +14,8 @@ import qualified Ouroboros.Language as AST
 data Scheme = Scheme {
 	name :: String,
 	bindings :: [Binding],
-	nodeDefinitions :: [NodeDefinition]
+	nodeDefinitions :: [NodeDefinition],
+	primaryIOs :: [Identifier]
 }
 
 data NodeDefinition = NodeDefinition {

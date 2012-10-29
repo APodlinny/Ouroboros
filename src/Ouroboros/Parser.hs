@@ -5,7 +5,12 @@ module Ouroboros.Parser (
 import Ouroboros.Language
 import Text.ParserCombinators.Parsec
 
-parseFile = parse program ""
+handleError :: Either ParseError Program -> Program
+handleError (Left err) = error $ "Error: " ++ (show err)
+handleError (Right program) = program
+
+parseFile :: String -> Program
+parseFile str = handleError $ parse program "" str
 
 program :: Parser Program
 program = do

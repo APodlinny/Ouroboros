@@ -11,7 +11,4 @@ main = do
     writeFile (fileName ++ ".out") $ reprint text
 
 reprint :: String -> String
-reprint = handleError . parseFile
-
-handleError (Left error) = "Error: " ++ (show error)
-handleError (Right program) = show program
+reprint = show . programFromScheme . programToScheme . parseFile

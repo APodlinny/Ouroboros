@@ -21,7 +21,7 @@ data NodeDefinition = NodeDefinition {
 	nodeType :: NodeType
 }
 
-data NodeType = INPUT | OUTPUT | AND | NAND | OR | NOR | XOR | BUF | NOT | DELAY
+data NodeType = INPUT | OUTPUT | AND | NAND | OR | NOR | XOR | BUF | NOT | DELAY deriving Eq
 type Binding = (Identifier, Identifier)
 type Identifier = AST.Identifier
 

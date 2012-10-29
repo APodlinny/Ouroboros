@@ -45,6 +45,7 @@ data TextLine = Comment String |
 data Command = Input      Identifier |
                Output     Identifier |
                Definition Identifier Expression
+               deriving Eq
                
 data Expression = AND   Identifier Identifier |
                   NAND  Identifier Identifier |
@@ -54,6 +55,7 @@ data Expression = AND   Identifier Identifier |
                   BUF   Identifier |
                   NOT   Identifier |
                   DELAY Identifier
+                  deriving Eq
                   
 data Identifier = Identifier { 
     str :: String 

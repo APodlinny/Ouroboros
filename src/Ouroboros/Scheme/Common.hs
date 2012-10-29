@@ -76,12 +76,7 @@ getNames =  nub .
             nodeDefinitions
 
 generateName :: [Identifier] -> Identifier
-generateName names = generateNameWithPattern names pattern
-    where
-        pattern =   if length names == 0 then 
-                        Identifier "0"
-                    else 
-                        head names
+generateName names = generateNameWithPattern names $ Identifier "0"
 
 generateNameWithPattern :: [Identifier] -> Identifier -> Identifier
 generateNameWithPattern names pattern = 
@@ -90,7 +85,7 @@ generateNameWithPattern names pattern =
     else
         newName
     where
-        newName = Identifier $ "_" ++ str pattern
+        newName = succ pattern
 
 applySetters :: [a -> a] -> a -> a
 applySetters [] x = x

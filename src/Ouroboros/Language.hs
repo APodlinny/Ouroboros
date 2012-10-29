@@ -96,5 +96,12 @@ instance Show Program where
     show (Program a) = join $ map show a where
 		join xs = foldl1 joiner xs
 		joiner a b = a ++ "\n" ++ b
+
+instance Enum Identifier where
+  toEnum = Identifier . show
+  fromEnum = read . str
+  --succ = toEnum . (+1) . fromEnum
+  --pred = toEnum . (-1) . fromEnum
+
     
 validChars = ['0'..'9'] ++ ['a'..'z'] ++ ['A'..'Z'] ++ "_]["

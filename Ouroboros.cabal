@@ -8,8 +8,9 @@ executable Ouroboros
   hs-source-dirs:  src
   main-is:         Main.hs
   build-depends:   base >= 4,
-                   parsec
-  ghc-options:     -Wall
+                   parsec,
+                   containers
+  ghc-options:     -Wall -fno-warn-unused-do-bind
   other-modules:   Ouroboros.Language,
                    Ouroboros.Parser,
                    Ouroboros.Scheme.Definition

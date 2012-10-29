@@ -4,18 +4,78 @@ module Ouroboros.Scheme.ToScheme (
 
 import Ouroboros.Scheme.Definition
 import qualified Ouroboros.Language as AST
+import qualified Data.Set as Set
 
 programToScheme :: AST.Program -> Scheme
-programToScheme program = if not $ isProgramValid program then
-						Scheme schemeName matrix nodes
-					else
-						error "Program is not valid."
-					where
-						schemeName = getName program
-						getName (AST.Program lines) = getComment $ 
-													  head $ 
-													  filter AST.isCommentLine lines
+programToScheme program = 	if isProgramValid program then
+								Scheme {
+									name 			= getName program,
+									bindings 		= getBindings program,
+									nodeDefinitions = getNodeDefinitions program
+								}
+							else
+								error "Program is not valid."
+							where
+								getName (AST.Program lines) = getComment $ 
+															  head $ 
+															  filter AST.isCommentLine lines
+								getComment (AST.Comment str) = str
                                                       
--- TODO: add program validation
+
 isProgramValid :: AST.Program -> Bool
-isProgramValid program = undefined
+isProgramValid program = areBindingsValid $ getBindings program
+
+getBindings :: AST.Program -> [Binding]
+getBindings (AST.Program lines) = getBindingsFromIOs ++
+								  getBindingsFromDefs
+	where
+		commands = map AST.getCommand $ filter AST.isCodeLine lines
+		getIO (AST.Input varId) = (inputId, varId)
+		getIO (AST.Output varId) = (varId, outputId)
+		getBindingsFromIOs = map getIO commands
+		defs = map AST.getDefinition commands
+		getDef def = map (\x -> (x, fst def)) $ getBindedVars $ snd def
+		getBindingsFromDefs = collapse $ map getDef defs
+		collapse = foldl1 (++)
+
+getBindedVars :: AST.Expression -> [Identifier]
+getBindedVars (AST.AND   a b) = [a, b]
+getBindedVars (AST.NAND  a b) = [a, b]
+getBindedVars (AST.OR    a b) = [a, b]
+getBindedVars (AST.NOR   a b) = [a, b]
+getBindedVars (AST.XOR   a b) = [a, b]
+getBindedVars (AST.BUF   a) = [a]
+getBindedVars (AST.NOT   a) = [a]
+getBindedVars (AST.DELAY a) = [a]
+
+areBindingsValid :: [Binding] -> Bool
+areBindingsValid bindings = result
+	where
+		result = iter bindings Set.empty Set.empty Set.empty
+
+		iter :: [Binding] -> Set.Set Identifier -> Set.Set Identifier -> Set.Set Identifier -> Bool
+		iter [] vars inVars outVars = all id $ Set.elems $ Set.map bothInAndOut vars
+			where
+					bothInAndOut v = (v /= inputId) && (v /= outputId) &&
+									 (Set.member v inVars) && (Set.member v outVars)
+
+		iter (b : bs) vars inVars outVars = iter bs (Set.insert (fst b) (Set.insert (snd b) vars))
+													(Set.insert (fst b) inVars)
+													(Set.insert (snd b) outVars)
+			
+getNodeDefinitions :: AST.Program -> [NodeDefinition]
+getNodeDefinitions (AST.Program lines) = ios ++ defs
+	where
+		commands = map AST.getCommand $ filter AST.isCodeLine lines
+		getIO (AST.Input varId) = NodeDefinition varId INPUT
+		getIO (AST.Output varId) = NodeDefinition varId OUTPUT
+		ios = map getIO commands
+		defs = map (nodeDef . AST.getDefinition) commands
+		nodeDef (varId, (AST.AND _ _))  = NodeDefinition varId AND
+		nodeDef (varId, (AST.NAND _ _)) = NodeDefinition varId NAND
+		nodeDef (varId, (AST.OR _ _))   = NodeDefinition varId OR
+		nodeDef (varId, (AST.NOR _ _))  = NodeDefinition varId NOR
+		nodeDef (varId, (AST.XOR _ _))  = NodeDefinition varId XOR
+		nodeDef (varId, (AST.NOT   _))  = NodeDefinition varId NOT
+		nodeDef (varId, (AST.BUF   _))  = NodeDefinition varId BUF
+		nodeDef (varId, (AST.DELAY _))  = NodeDefinition varId DELAY

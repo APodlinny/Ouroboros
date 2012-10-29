@@ -55,7 +55,9 @@ data Expression = AND   Identifier Identifier |
                   NOT   Identifier |
                   DELAY Identifier
                   
-data Identifier = Identifier String deriving Eq
+data Identifier = Identifier { 
+    str :: String 
+} deriving (Eq, Ord)
 
 instance Show Identifier where
     show (Identifier a) = if all valid a then

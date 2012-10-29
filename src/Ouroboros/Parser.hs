@@ -75,14 +75,14 @@ definition = do
     return $ Definition var expr
 
 expression :: Parser Expression
-expression = andExpr <|>
-             orExpr <|>
-             nandExpr <|>
-             norExpr <|>
-             notExpr <|>
-             xorExpr <|>
-             bufExpr <|>
-             delayExpr <|>
+expression = (try andExpr) <|>
+             (try orExpr) <|>
+             (try nandExpr) <|>
+             (try norExpr) <|>
+             (try notExpr) <|>
+             (try xorExpr) <|>
+             (try bufExpr) <|>
+             (try delayExpr) <|>
              (fail "invalid operation")
              
 andExpr :: Parser Expression

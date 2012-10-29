@@ -11,4 +11,4 @@ main = do
     writeFile (fileName ++ ".out") $ reprint text
 
 reprint :: String -> String
-reprint = show . programFromScheme . programToScheme . parseFile
+reprint = show . programFromScheme . removeRecursions . programToScheme . parseFile

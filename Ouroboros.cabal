@@ -17,4 +17,5 @@ executable Ouroboros
                    Ouroboros.Scheme.FromScheme
                    Ouroboros.Scheme.ToScheme
                    Ouroboros.Scheme
+                   Ouroboros.Common
 

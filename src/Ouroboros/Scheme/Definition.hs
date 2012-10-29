@@ -19,7 +19,7 @@ data Scheme = Scheme {
 data NodeDefinition = NodeDefinition {
 	nodeName :: Identifier,
 	nodeType :: NodeType
-}
+} deriving Eq
 
 data NodeType = INPUT | OUTPUT | AND | NAND | OR | NOR | XOR | BUF | NOT | DELAY deriving Eq
 type Binding = (Identifier, Identifier)

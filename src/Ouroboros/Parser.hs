@@ -156,8 +156,8 @@ xorExpr = do
 
 delayExpr :: Parser Expression    
 delayExpr = do
-    operation <- string "delay" <|>
-                 string "DELAY"
+    operation <- string "dff" <|>
+                 string "DFF"
     char '('
     arg <- identifier
     char ')'

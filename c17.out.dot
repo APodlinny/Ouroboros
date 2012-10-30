@@ -1,0 +1,19 @@
+digraph " test with simple recursion" {
+"z_1_1\nAND" -> "__output__\nOUTPUT";
+"z_1\nNOT" -> "z_1_1\nAND";
+"z_1_0\nNOT" -> "z_1_1\nAND";
+"z_1\nNOT" -> "z_1_0\nNOT";
+"z_0_1\nAND" -> "__output__\nOUTPUT";
+"z_0\nAND" -> "z_0_1\nAND";
+"z_0_0\nNOT" -> "z_0_1\nAND";
+"z_0\nAND" -> "z_0_0\nNOT";
+"__input__\nINPUT" -> "z1_1_0\nINPUT";
+"__input__\nINPUT" -> "z1_0_0\nINPUT";
+"__input__\nINPUT" -> "x\nINPUT";
+"y\nAND" -> "__output__\nOUTPUT";
+"x\nINPUT" -> "y\nAND";
+"z1_0_0\nINPUT" -> "y\nAND";
+"z_0\nAND" -> "z_1\nNOT";
+"y\nAND" -> "z_0\nAND";
+"z1_1_0\nINPUT" -> "z_0\nAND";
+}

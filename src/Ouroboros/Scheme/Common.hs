@@ -13,9 +13,7 @@ module Ouroboros.Scheme.Common (
 
 import Ouroboros.Scheme.Definition
 import Data.List
---import Data.List.Utils
 import Text.ParserCombinators.Parsec
---import Text.ParserCombinators.Parsec.Number
 
 addInput :: Identifier -> Scheme -> Scheme
 addInput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }

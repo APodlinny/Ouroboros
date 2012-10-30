@@ -3,7 +3,7 @@ module Ouroboros.Scheme.ToScheme (
 ) where
 
 import Ouroboros.Scheme.Definition
-import qualified Ouroboros.Language as AST
+import qualified Ouroboros.Bench.Language as AST
 import qualified Data.Set as Set
 import Data.List
 

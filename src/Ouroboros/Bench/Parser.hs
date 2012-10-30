@@ -1,8 +1,8 @@
-module Ouroboros.Parser (
+module Ouroboros.Bench.Parser (
     parseFile
 ) where
 
-import Ouroboros.Language
+import Ouroboros.Bench.Language
 import Text.ParserCombinators.Parsec
 
 handleError :: Either ParseError Program -> Program

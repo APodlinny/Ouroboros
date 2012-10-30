@@ -9,15 +9,19 @@ executable Ouroboros
   main-is:         Main.hs
   build-depends:   base >= 4,
                    parsec,
-                   containers
+                   containers,
+                   process
   ghc-options:     -Wall -fno-warn-unused-do-bind
-  other-modules:   Ouroboros.Language,
-                   Ouroboros.Parser,
-                   Ouroboros.Scheme
-                   Ouroboros.Scheme.Definition
-                   Ouroboros.Scheme.FromScheme
-                   Ouroboros.Scheme.ToScheme
-                   Ouroboros.Scheme.Deafen
-                   Ouroboros.Scheme.RemoveRecursion
-                   Ouroboros.Scheme.Common
+  other-modules:   Ouroboros.Bench,
+                   Ouroboros.Bench.Language,
+                   Ouroboros.Bench.Parser,
+                   Ouroboros.Scheme,
+                   Ouroboros.Scheme.Definition,
+                   Ouroboros.Scheme.FromScheme,
+                   Ouroboros.Scheme.ToScheme,
+                   Ouroboros.Scheme.Deafen,
+                   Ouroboros.Scheme.RemoveRecursion,
+                   Ouroboros.Scheme.Common,
+                   Ouroboros.Graphviz,
+                   Ouroboros.Graphviz.Language
 

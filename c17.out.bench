@@ -1,0 +1,1 @@
+"#  test with simple recursion\n# Primary IOs:\n# x\n# y\n\ninput(z1_1_[0])\ninput(z1_0_[0])\ninput(x)\noutput(z_1_[1])\noutput(z_0_[1])\noutput(y)\nz_1_[1] = and(z_1, z_1_[0])\nz_1_[0] = not(z_1)\nz_0_[1] = and(z_0, z_0_[0])\nz_0_[0] = not(z_0)\ny = and(x, z1_0_[0])\nz_1 = not(z_0)\nz_0 = and(y, z1_1_[0])"

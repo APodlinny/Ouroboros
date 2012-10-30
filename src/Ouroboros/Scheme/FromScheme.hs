@@ -3,7 +3,7 @@ module Ouroboros.Scheme.FromScheme (
 ) where
 
 import qualified Ouroboros.Scheme.Definition as Scheme
-import Ouroboros.Language
+import Ouroboros.Bench.Language
 
 programFromScheme :: Scheme.Scheme -> Program
 programFromScheme scheme = Program textLines

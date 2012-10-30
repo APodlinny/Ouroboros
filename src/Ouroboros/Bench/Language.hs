@@ -1,4 +1,4 @@
-module Ouroboros.Language (
+module Ouroboros.Bench.Language (
     Program(..),
     TextLine(..),
     Command(..),

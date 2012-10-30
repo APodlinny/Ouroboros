@@ -9,7 +9,7 @@ module Ouroboros.Scheme.Definition (
 	AST.Identifier(..)
 ) where
 
-import qualified Ouroboros.Language as AST
+import qualified Ouroboros.Bench.Language as AST
 
 data Scheme = Scheme {
 	name :: String,
@@ -23,7 +23,7 @@ data NodeDefinition = NodeDefinition {
 	nodeType :: NodeType
 } deriving Eq
 
-data NodeType = INPUT | OUTPUT | AND | NAND | OR | NOR | XOR | BUF | NOT | DELAY deriving Eq
+data NodeType = INPUT | OUTPUT | AND | NAND | OR | NOR | XOR | BUF | NOT | DELAY deriving (Eq, Show)
 type Binding = (Identifier, Identifier)
 type Identifier = AST.Identifier
 

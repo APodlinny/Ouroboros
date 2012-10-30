@@ -13,6 +13,9 @@ module Ouroboros.Scheme.Common (
 
 import Ouroboros.Scheme.Definition
 import Data.List
+import Data.List.Utils
+import Text.ParserCombinators.Parsec
+--import Text.ParserCombinators.Parsec.Number
 
 addInput :: Identifier -> Scheme -> Scheme
 addInput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }
@@ -76,7 +79,7 @@ getNames =  nub .
             nodeDefinitions
 
 generateName :: [Identifier] -> Identifier
-generateName names = generateNameWithPattern names $ Identifier "0"
+generateName names = generateNameWithPattern names $ Identifier ""
 
 generateNameWithPattern :: [Identifier] -> Identifier -> Identifier
 generateNameWithPattern names pattern = 
@@ -85,7 +88,30 @@ generateNameWithPattern names pattern =
     else
         newName
     where
-        newName = succ pattern
+        newName = Identifier $ nextName $ str pattern
+
+nextName :: String -> String
+nextName str = 
+	if (length parts == 1) || (not maybeIndex) || (not isInt) then
+		str ++ "_[0]"
+	else 
+		name ++ "_[" ++ (show $ index + 1) ++ "]"
+	where
+		parts = split "_" str
+		lastPart = last parts
+		maybeIndex = (startswith "[" lastPart) && 
+						(endswith "]" lastPart)
+
+		indexStr = drop 1 $ init lastPart
+		parseResult = parse (many1 $ oneOf ['0'..'9']) "" indexStr
+		isInt = case parseResult of 
+			Left _ -> False
+			Right _ -> True
+
+		index = read indexStr :: Int
+
+		name = join "_" $ init parts
+
 
 applySetters :: [a -> a] -> a -> a
 applySetters [] x = x

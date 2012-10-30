@@ -30,5 +30,5 @@ deafenOutput nodeId scheme = applySetters setters scheme
 			addOutput nameForAnd]
 
 		names = getNames scheme
-		nameForNot = generateName names
-		nameForAnd = generateName (nameForNot : names)
+		nameForNot = generateNameWithPattern names nodeId
+		nameForAnd = generateNameWithPattern (nameForNot : names) nameForNot

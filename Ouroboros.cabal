@@ -9,8 +9,7 @@ executable Ouroboros
   main-is:         Main.hs
   build-depends:   base >= 4,
                    parsec,
-                   containers,
-                   MissingH
+                   containers
   ghc-options:     -Wall -fno-warn-unused-do-bind
   other-modules:   Ouroboros.Language,
                    Ouroboros.Parser,

@@ -44,7 +44,7 @@ removeRecursion nodeId scheme = applySetters setters scheme
             remapOutputs newName outputs]
 
         names = getNames scheme
-        newName = generateName names
+        newName = generateNameWithPattern names nodeId
         input = fst $ head $ filter (\(from, to) -> to == nodeId) (bindings scheme)
         outputs = map snd $ filter (\(from, to) -> from == nodeId) (bindings scheme)
 

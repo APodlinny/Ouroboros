@@ -13,7 +13,7 @@ module Ouroboros.Scheme.Common (
 
 import Ouroboros.Scheme.Definition
 import Data.List
-import Data.List.Utils
+--import Data.List.Utils
 import Text.ParserCombinators.Parsec
 --import Text.ParserCombinators.Parsec.Number
 
@@ -97,7 +97,7 @@ nextName str =
 	else 
 		name ++ "_[" ++ (show $ index + 1) ++ "]"
 	where
-		parts = split "_" str
+		parts = split '_' str
 		lastPart = last parts
 		maybeIndex = (startswith "[" lastPart) && 
 						(endswith "]" lastPart)
@@ -125,3 +125,28 @@ stateOutputs scheme = result
 		primary = primaryIOs scheme
 		isPrimary d = elem (nodeName d) primary
 		result = map nodeName $ filter (not . isPrimary) outputs
+        
+join :: [a] -> [[a]] -> [a]
+join separator items = foldl1 joiner items
+    where
+        joiner a b = a ++ separator ++ b
+        
+split :: Eq a => a -> [a] -> [[a]]
+split separator xs = reverse $ iterate spanResult []
+    where
+        spanResult = spanSplit separator xs
+        iterate (elt, []) result = elt : result
+        iterate (elt, other) result = iterate (spanSplit separator other) (elt : result)
+
+spanSplit :: Eq a => a -> [a] -> ([a], [a])
+spanSplit separator xs = (element, other)
+    where
+        result = span (/= separator) xs
+        element = fst result
+        other = drop 1 $ snd result
+        
+startswith :: Eq a => [a] -> [a] -> Bool
+startswith begining xs = begining == (take (length begining) xs)
+
+endswith :: Eq a => [a] -> [a] -> Bool
+endswith ending xs = ending == drop (length xs - length ending) xs

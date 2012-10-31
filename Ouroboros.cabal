@@ -22,6 +22,8 @@ executable Ouroboros
                    Ouroboros.Scheme.Deafen,
                    Ouroboros.Scheme.RemoveRecursion,
                    Ouroboros.Scheme.Common,
+                   Ouroboros.Scheme.Copy,
+                   Ouroboros.Scheme.Concatenate,
                    Ouroboros.Graphviz,
                    Ouroboros.Graphviz.Language
 

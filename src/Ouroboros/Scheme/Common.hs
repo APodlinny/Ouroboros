@@ -2,6 +2,7 @@ module Ouroboros.Scheme.Common (
 	addInput,
 	addOutput,
 	removeOutput,
+    removeInput,
 	rename,
 	changeType,
 	getNames,
@@ -39,13 +40,29 @@ removeOutput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = new
         newDefs = filter (/= (NodeDefinition nodeId OUTPUT)) oldDefs
         newBinds = filter (/= (nodeId, outputId)) oldBinds
 
-rename :: Identifier -> Identifier -> Scheme -> Scheme
-rename nodeA nodeB scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }
+removeInput :: Identifier -> Scheme -> Scheme
+removeInput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }
     where
         oldBinds = bindings scheme
         oldDefs = nodeDefinitions scheme
+        newDefs = filter (/= (NodeDefinition nodeId INPUT)) oldDefs
+        newBinds = filter (/= (inputId, nodeId)) oldBinds  
+
+rename :: Identifier -> Identifier -> Scheme -> Scheme
+rename nodeA nodeB scheme = scheme { 
+        bindings = newBinds, 
+        nodeDefinitions = newDefs,
+        primaryIOs = newPrimaryIOs
+    }
+    where
+        oldBinds = bindings scheme
+        oldDefs = nodeDefinitions scheme
+        oldPrimaryIOs = primaryIOs scheme
+
         newDefs = map renameDef oldDefs
         newBinds = map renameBind oldBinds
+        newPrimaryIOs = map renameIO oldPrimaryIOs
+
         renameBind (a, b) = if a == nodeA then
                                 (nodeB, b)
                             else if b == nodeA then
@@ -57,6 +74,11 @@ rename nodeA nodeB scheme = scheme { bindings = newBinds, nodeDefinitions = newD
                             def { nodeName = nodeB }
                         else
                             def
+
+        renameIO x =    if x == nodeA then
+                            nodeB
+                        else
+                            x
 
 changeType :: Identifier -> NodeType -> Scheme -> Scheme
 changeType nodeId nodeT scheme = scheme { nodeDefinitions = newDefs }
@@ -123,6 +145,15 @@ stateOutputs scheme = result
 		primary = primaryIOs scheme
 		isPrimary d = elem (nodeName d) primary
 		result = map nodeName $ filter (not . isPrimary) outputs
+
+stateInputs :: Scheme -> [Identifier]
+stateInputs scheme = result
+    where
+        defs = nodeDefinitions scheme
+        inputs = filter (\d -> nodeType d == INPUT) defs
+        primary = primaryIOs scheme
+        isPrimary d = elem (nodeName d) primary
+        result = map nodeName $ filter (not . isPrimary) inputs
         
 join :: [a] -> [[a]] -> [a]
 join separator items = foldl1 joiner items

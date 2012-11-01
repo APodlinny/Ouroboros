@@ -1,4 +1,5 @@
 digraph " test with simple recursion" {
+rankdir = LR
 "__input__\nINPUT" -> "x\nINPUT";
 "y\nAND" -> "__output__\nOUTPUT";
 "x\nINPUT" -> "y\nAND";

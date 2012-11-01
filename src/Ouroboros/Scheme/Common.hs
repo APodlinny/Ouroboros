@@ -9,6 +9,7 @@ module Ouroboros.Scheme.Common (
 	generateName,
 	generateNameWithPattern,
 	applySetters,
+    stateInputs,
 	stateOutputs
 ) where
 

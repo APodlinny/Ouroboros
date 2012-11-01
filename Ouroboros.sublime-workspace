@@ -15,49 +15,6 @@
 	},
 	"buffers":
 	[
-		{
-			"file": "src/Ouroboros/Scheme/Definition.hs",
-			"settings":
-			{
-				"buffer_size": 707,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"contents": "module Ouroboros.Scheme.Copy (\n	copyScheme\n) where\n\n--import Ouroboros.Scheme\nimport Ouroboros.Scheme.Common\n\n\ncopyScheme :: Scheme -> Scheme\ncopyScheme s = applySetters renameSetters s\n	where\n		oldNames = getNames s\n		newNames = mapGenName oldNames oldNames\n		renameSetters = zipWith rename oldNames newNames\n\nmapGenName :: [Identifier] -> [Identifier] -> [Identifier]\nmapGenName nameBase [] = []\nmapGenName nameBase (oldName : names) = newName : (mapGenName (newName : nameBase) names)\n	where\n		newName = generateNameWithPattern nameBase oldName\n",
-			"file": "src/Ouroboros/Scheme/Copy.hs",
-			"file_size": 566,
-			"file_write_time": 129961548280836071,
-			"settings":
-			{
-				"buffer_size": 548,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Scheme/Common.hs",
-			"settings":
-			{
-				"buffer_size": 5156,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "Ouroboros.cabal",
-			"settings":
-			{
-				"buffer_size": 924,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Scheme.hs",
-			"settings":
-			{
-				"buffer_size": 450,
-				"line_ending": "Windows"
-			}
-		}
 	],
 	"build_system": "",
 	"command_palette":
@@ -87,6 +44,11 @@
 	},
 	"file_history":
 	[
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme.hs",
+		"/I/data/Ouroboros/Ouroboros/Ouroboros.cabal",
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme/Common.hs",
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme/Copy.hs",
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme/Definition.hs",
 		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/Copy.hs",
 		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Graphviz/Language.hs",
 		"/C/Users/wacca/Documents/coslab1.txt",
@@ -142,146 +104,8 @@
 	"groups":
 	[
 		{
-			"selected": 1,
 			"sheets":
 			[
-				{
-					"buffer": 0,
-					"file": "src/Ouroboros/Scheme/Definition.hs",
-					"settings":
-					{
-						"buffer_size": 707,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								322,
-								332
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 1,
-					"file": "src/Ouroboros/Scheme/Copy.hs",
-					"settings":
-					{
-						"buffer_size": 548,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								78,
-								102
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 2,
-					"file": "src/Ouroboros/Scheme/Common.hs",
-					"settings":
-					{
-						"buffer_size": 5156,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								3125,
-								3102
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 1145.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "Ouroboros.cabal",
-					"settings":
-					{
-						"buffer_size": 924,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								835,
-								835
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "src/Ouroboros/Scheme.hs",
-					"settings":
-					{
-						"buffer_size": 450,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								431,
-								431
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"tab_size": 3,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				}
 			]
 		}
 	],

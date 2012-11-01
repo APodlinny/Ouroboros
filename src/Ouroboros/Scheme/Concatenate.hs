@@ -12,7 +12,7 @@ concatSchemes nodesToBind schemeA schemeB = applySetters concatSetters concatedS
 			name = name schemeA,
 			bindings = (bindings schemeA) ++ (bindings schemeB),
 			nodeDefinitions = (nodeDefinitions schemeA) ++ (nodeDefinitions schemeB),
-			primaryIOs = (primaryIOs schemeB) ++ (primaryInputs schemeA)
+			primaryIOs = (primaryIOs schemeB) ++ (primaryIOs schemeA)
 		}
 
 		inputs s = map nodeName $ 

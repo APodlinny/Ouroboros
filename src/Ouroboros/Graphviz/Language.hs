@@ -11,7 +11,9 @@ data Graph = Graph {
 }
 
 instance Show Graph where
-	show g = "digraph " ++ (show $ name g) ++ " {\n" ++ (showBinds $ bindings g) ++ "}"
+	show g = "digraph " ++ (show $ name g) ++ " {\n" ++ 
+		"rankdir = LR\n" ++ 
+		(showBinds $ bindings g) ++ "}"
 
 showBinds :: [Binding] -> String
 showBinds bs = joinLines (map showBind bs) ++ ";\n"

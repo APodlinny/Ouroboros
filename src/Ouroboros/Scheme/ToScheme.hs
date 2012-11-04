@@ -3,6 +3,7 @@ module Ouroboros.Scheme.ToScheme (
 ) where
 
 import Ouroboros.Scheme.Definition
+import Ouroboros.Scheme.Common
 import qualified Ouroboros.Bench.Language as AST
 import qualified Data.Set as Set
 import Data.List
@@ -16,7 +17,8 @@ programToScheme program = 	if validateProgram program then
 									primaryIOs		= 	map nodeName $ 
 														filter (\def -> nodeType def == OUTPUT || 
 																		nodeType def == INPUT) $ 
-														getNodeDefinitions program
+														getNodeDefinitions program,
+									stateBindings = []
 								}
 							else
 								error "Program is not valid."

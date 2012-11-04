@@ -6,12 +6,14 @@ import Ouroboros.Scheme.Common
 import Ouroboros.Scheme.Definition
 
 deafenStateOutputs :: Scheme -> Scheme
-deafenStateOutputs scheme = applySetters setters scheme
+deafenStateOutputs scheme = 
+	validateScheme "deafenStateOutputs" $ applySetters setters scheme
 	where
 		setters = map deafenOutput $ stateOutputs scheme
 
 deafenOutput :: Identifier -> Scheme -> Scheme
-deafenOutput nodeId scheme = applySetters setters scheme
+deafenOutput nodeId scheme = 
+	validateScheme "deafenOutput" $ applySetters setters scheme
 	where
 		addNot nodeName argName s = s {
 			bindings = (argName, nodeName) : (bindings s),

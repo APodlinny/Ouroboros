@@ -6,7 +6,8 @@ import Ouroboros.Scheme.Common
 import Ouroboros.Scheme.Definition
 
 copyScheme :: Scheme -> Scheme
-copyScheme s = applySetters renameSetters s
+copyScheme s = 
+	validateScheme "copyScheme" $ applySetters renameSetters s
 	where
 		oldNames = getNames s
 		newNames = mapGenName oldNames

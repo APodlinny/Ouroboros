@@ -15,7 +15,8 @@ data Scheme = Scheme {
 	name :: String,
 	bindings :: [Binding],
 	nodeDefinitions :: [NodeDefinition],
-	primaryIOs :: [Identifier]
+	primaryIOs :: [Identifier],
+	stateBindings :: [Binding]
 }
 
 data NodeDefinition = NodeDefinition {

@@ -10,13 +10,14 @@ removeRecursions scheme =
     if length recNodes == 0 then
         scheme
     else
-        applySetters removings scheme
+        validateScheme "removeRecursions" $ applySetters removings scheme
     where
         recNodes = getRecursionNodes $ nodeDefinitions scheme
         removings = map removeRecursion recNodes
 
 removeRecursion :: Identifier -> Scheme -> Scheme
-removeRecursion nodeId scheme = applySetters setters scheme
+removeRecursion nodeId scheme = 
+    validateScheme "removeRecursion" $ applySetters setters scheme
     where
         removeDelay s = s { 
             nodeDefinitions = filter (/= (NodeDefinition nodeId DELAY)) (nodeDefinitions s) 
@@ -34,7 +35,9 @@ removeRecursion nodeId scheme = applySetters setters scheme
             bindings = map (\(from, to) ->  if (elem to outputs) && (from == nodeId) then
                                                 (newName, to)
                                             else
-                                                (from, to)) (bindings s)
+                                                (from, to)) (bindings s),
+
+            stateBindings = (newName, nodeId) : (stateBindings s)
         }
 
         setters = [

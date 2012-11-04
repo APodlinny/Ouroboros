@@ -20,19 +20,19 @@ main = do
     let bench1 = parseFile file1
     let scheme1 = programToScheme bench1
     let graph1 = graphFromScheme scheme1
-    let scheme2 = copySchemeTimes 7 $ removeRecursions scheme1
+    let scheme2 = deafenStateOutputs $ copySchemeTimes 2 $ removeRecursions scheme1
     let graph2 = graphFromScheme scheme2
     let bench2 = programFromScheme scheme2
     let file2 = show bench2
 
     writeFile (srcFile ++ ".dot") $ show graph1
     writeFile (srcFile ++ ".out.dot") $ show graph2
-    writeFile (srcFile ++ ".out.bench") $ show file2
+    writeFile (srcFile ++ ".out.bench") $ file2
 
     drawGraph srcFile
     drawGraph (srcFile ++ ".out")
 
 drawGraph :: String -> IO ()
 drawGraph filename = do
-	system $ "dot -Tpdf " ++ filename ++ ".dot -o " ++ filename ++ ".pdf"
+	system $ "dot -Tpng " ++ filename ++ ".dot -o " ++ filename ++ ".png"
 	return ()

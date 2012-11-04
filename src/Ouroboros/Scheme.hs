@@ -28,6 +28,11 @@ copySchemeTimes :: Int -> Scheme -> Scheme
 copySchemeTimes 1 s = s
 copySchemeTimes n s = copySchemeTimes (n - 1) concated
    where
-      concated = concatSchemes binds s copyS
-      copyS = copyScheme s
-      binds = zipWith (,) (stateOutputs s) (reverse $ stateInputs copyS)
+      s1 = s
+      s2 = copyScheme s1
+      stateBinds1 = stateBindings s1
+      stateBinds2 = stateBindings s2
+      concated = concatSchemes binds s1 s2
+
+      binds = zipWith rebind stateBinds1 stateBinds2
+      rebind (a, b) (c, d) = (b, c)

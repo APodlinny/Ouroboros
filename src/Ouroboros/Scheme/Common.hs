@@ -10,59 +10,93 @@ module Ouroboros.Scheme.Common (
 	generateNameWithPattern,
 	applySetters,
     stateInputs,
-	stateOutputs
+	stateOutputs,
+    validateScheme
 ) where
 
 import Ouroboros.Scheme.Definition
 import Data.List
-import Text.ParserCombinators.Parsec
+import qualified Data.Set as Set 
+import Control.Exception
+import System.IO.Unsafe
+
+validateScheme :: String -> Scheme -> Scheme
+validateScheme context s = 
+    if validateBindings context $ bindings s then
+        s
+    else
+        error $ context ++ ": scheme is not valid."
+
+validateBindings :: String -> [Binding] -> Bool
+validateBindings context bindings = result
+    where
+        result = iter bindings Set.empty Set.empty Set.empty
+
+        iter :: [Binding] -> Set.Set Identifier -> Set.Set Identifier -> Set.Set Identifier -> Bool
+        iter [] vars inVars outVars = all id $ Set.elems $ Set.map bothInAndOut vars
+            where
+                    bothInAndOut v =    if (v == inputId) || (v == outputId) then
+                                            True
+                                        else if not (Set.member v inVars) then
+                                            error $ context ++ ": Unspecified node: " ++ show v 
+                                        else if not (Set.member v outVars) then
+                                            error $ context ++ ": Unknown node: " ++ show v
+                                        else
+                                            True
+
+        iter (b : bs) vars inVars outVars = iter bs (Set.insert (fst b) (Set.insert (snd b) vars))
+                                                    (Set.insert (fst b) inVars)
+                                                    (Set.insert (snd b) outVars)
 
 addInput :: Identifier -> Scheme -> Scheme
-addInput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }
+addInput nodeId s = s { bindings = newBinds, nodeDefinitions = newDefs }
     where
-        oldBinds = bindings scheme
-        oldDefs = nodeDefinitions scheme
+        oldBinds = bindings s
+        oldDefs = nodeDefinitions s
         newDefs = NodeDefinition nodeId INPUT : oldDefs
         newBinds = (inputId, nodeId) : oldBinds
         
 addOutput :: Identifier -> Scheme -> Scheme
-addOutput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }
+addOutput nodeId s = s { bindings = newBinds, nodeDefinitions = newDefs }
     where
-        oldBinds = bindings scheme
-        oldDefs = nodeDefinitions scheme
+        oldBinds = bindings s
+        oldDefs = nodeDefinitions s
         newDefs = NodeDefinition nodeId OUTPUT : oldDefs
         newBinds = (nodeId, outputId) : oldBinds
 
 removeOutput :: Identifier -> Scheme -> Scheme
-removeOutput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }
+removeOutput nodeId s = s { bindings = newBinds, nodeDefinitions = newDefs }
     where
-        oldBinds = bindings scheme
-        oldDefs = nodeDefinitions scheme
+        oldBinds = bindings s
+        oldDefs = nodeDefinitions s
         newDefs = filter (/= (NodeDefinition nodeId OUTPUT)) oldDefs
         newBinds = filter (/= (nodeId, outputId)) oldBinds
 
 removeInput :: Identifier -> Scheme -> Scheme
-removeInput nodeId scheme = scheme { bindings = newBinds, nodeDefinitions = newDefs }
+removeInput nodeId s = s { bindings = newBinds, nodeDefinitions = newDefs }
     where
-        oldBinds = bindings scheme
-        oldDefs = nodeDefinitions scheme
+        oldBinds = bindings s
+        oldDefs = nodeDefinitions s
         newDefs = filter (/= (NodeDefinition nodeId INPUT)) oldDefs
         newBinds = filter (/= (inputId, nodeId)) oldBinds  
 
 rename :: Identifier -> Identifier -> Scheme -> Scheme
-rename nodeA nodeB scheme = scheme { 
+rename nodeA nodeB s = s { 
         bindings = newBinds, 
         nodeDefinitions = newDefs,
-        primaryIOs = newPrimaryIOs
+        primaryIOs = newPrimaryIOs,
+        stateBindings = newStateBindings
     }
     where
-        oldBinds = bindings scheme
-        oldDefs = nodeDefinitions scheme
-        oldPrimaryIOs = primaryIOs scheme
+        oldBinds = bindings s
+        oldDefs = nodeDefinitions s
+        oldPrimaryIOs = primaryIOs s
+        oldStateBindings = stateBindings s
 
         newDefs = map renameDef oldDefs
         newBinds = map renameBind oldBinds
         newPrimaryIOs = map renameIO oldPrimaryIOs
+        newStateBindings = map renameBind oldStateBindings
 
         renameBind (a, b) = if a == nodeA then
                                 (nodeB, b)
@@ -82,9 +116,9 @@ rename nodeA nodeB scheme = scheme {
                             x
 
 changeType :: Identifier -> NodeType -> Scheme -> Scheme
-changeType nodeId nodeT scheme = scheme { nodeDefinitions = newDefs }
+changeType nodeId nodeT s = s { nodeDefinitions = newDefs }
     where
-        oldDefs = nodeDefinitions scheme
+        oldDefs = nodeDefinitions s
         newDefs = map changeT oldDefs
         changeT def =   if (nodeName def) == nodeId then
                             if ((nodeType def) /= INPUT) && ((nodeType def) /= OUTPUT) then
@@ -124,15 +158,23 @@ nextName str =
 						(endswith "]" lastPart)
 
 		indexStr = drop 1 $ init lastPart
-		parseResult = parse (many1 $ oneOf ['0'..'9']) "" indexStr
-		isInt = case parseResult of 
-			Left _ -> False
-			Right _ -> True
+		isInt = case catchBottom index of 
+			Nothing -> False
+			Just _  -> True
 
 		index = read indexStr :: Int
 
 		name = join "_" $ init parts
 
+
+catchBottom :: a -> Maybe a
+catchBottom x = unsafePerformIO $ handle stub $ evalSafe x
+    where
+        stub :: SomeException -> IO (Maybe a)
+        stub _ = return Nothing
+
+        evalSafe :: a -> IO (Maybe a)
+        evalSafe x = evaluate x >>= (return . Just)
 
 applySetters :: [a -> a] -> a -> a
 applySetters [] x = x

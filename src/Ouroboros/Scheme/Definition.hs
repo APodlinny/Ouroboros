@@ -1,6 +1,5 @@
 module Ouroboros.Scheme.Definition (
 	Scheme(..),
-	--Identifier(..),
 	NodeDefinition(..),
 	NodeType(..),
 	Binding(..),

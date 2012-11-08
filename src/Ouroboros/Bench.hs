@@ -1,5 +1,5 @@
 module Ouroboros.Bench (
-	parseFile
+	parseBenchFile
 ) where
 
 import Ouroboros.Bench.Language

@@ -4,36 +4,84 @@
 		"selected_items":
 		[
 			[
-				"node",
-				"nodeId"
+				"add",
+				"addFaultSetters"
 			],
 			[
-				"re",
-				"removeRecursions"
+				"whe",
+				"where"
 			],
 			[
-				"dea",
-				"deafenStateOutputs"
+				"copi",
+				"copySchemeTimes"
 			],
 			[
-				"state",
-				"stateBinds2"
-			],
-			[
-				"copy",
-				"copySchemeN"
-			],
-			[
-				"p",
+				"prima",
 				"primaryIOs"
 			],
 			[
-				"sch",
-				"schemeA"
+				"sc",
+				"schemeDst"
 			],
 			[
-				"primary",
-				"primaryInputs"
+				"parseBlock",
+				"parseBlocks"
+			],
+			[
+				"Exit",
+				"ExitFailure"
+			],
+			[
+				"program",
+				"programFromScheme"
+			],
+			[
+				"sch",
+				"schemeSrc"
+			],
+			[
+				"with",
+				"withIndex"
+			],
+			[
+				"par",
+				"parseTestsFile"
+			],
+			[
+				"Fault",
+				"FaultDescription"
+			],
+			[
+				"group",
+				"groupby"
+			],
+			[
+				"grou",
+				"groupBy"
+			],
+			[
+				"toGra",
+				"toGraphName"
+			],
+			[
+				"join",
+				"joinLines"
+			],
+			[
+				"parseFau",
+				"parseFault"
+			],
+			[
+				"genera",
+				"generateGraph"
+			],
+			[
+				"sche",
+				"schemeB"
+			],
+			[
+				"copy",
+				"copyScheme"
 			],
 			[
 				"ma",
@@ -48,100 +96,29 @@
 	"buffers":
 	[
 		{
-			"file": "src/Ouroboros/Scheme/Common.hs",
-			"settings":
-			{
-				"buffer_size": 7556,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "Ouroboros.cabal",
-			"settings":
-			{
-				"buffer_size": 973,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Scheme.hs",
-			"settings":
-			{
-				"buffer_size": 930,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Scheme/Definition.hs",
-			"settings":
-			{
-				"buffer_size": 736,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Scheme/Concatenate.hs",
-			"settings":
-			{
-				"buffer_size": 1128,
-				"line_ending": "Windows",
-				"name": "module Ouroboros.Scheme.Concatinate ("
-			}
-		},
-		{
-			"file": "/C/Users/wacca/Documents/МЫСЛИ.txt",
-			"settings":
-			{
-				"buffer_size": 866,
-				"line_ending": "Windows",
-				"name": "1:"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Scheme/Copy.hs",
-			"settings":
-			{
-				"buffer_size": 669,
-				"line_ending": "Windows"
-			}
-		},
-		{
 			"file": "src/Main.hs",
 			"settings":
 			{
-				"buffer_size": 963,
+				"buffer_size": 3771,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "src/Ouroboros/Scheme/Deafen.hs",
+			"file": "src/Ouroboros/Fault/Language.hs",
 			"settings":
 			{
-				"buffer_size": 1103,
+				"buffer_size": 849,
 				"line_ending": "Windows"
 			}
 		},
 		{
-			"file": "src/Ouroboros/Scheme/ToScheme.hs",
+			"contents": "module Ouroboros.Fault (\n	parseFaultsFile\n) where\n\nimport Ouroboros.Common\nimport Ouroboros.Fault.Language\nimport Ouroboros.Fault.Parser\n\naddSimilarFaults :: [[Identifier]] -> Faults -> Faults\naddSimilarFaults groups fs = applySetters addFaultSetters fs\n	where\n		addFaultSetters = map makeFaultSetter $ faults fs\n\n		makeFaultSetter (Node fId fType) = addNodeFaults (getSameNodes groups ) (Node fId fType)\n\naddFault :: Fault -> Faults -> Faults\naddFault f fs = Faults {\n	faults = f : (faults fs)\n}\n\naddNodeFaults :: [Identifier] -> Fault -> Faults -> Faults\naddNodeFaults nodeIds f fs = applySetters addFaultSetters fs\n	where\n		addFaultSetters = map (\\x -> addNodeFault x f) nodeIds\n\naddNodeFault :: Identifier -> Fault -> Faults -> Faults\naddNodeFault nodeId f fs = addFault newFault fs\n	where\n		newFault = f { node = nodeId }\n\naddJunctionFaults :: [(Identifier, Identifier)] -> Fault -> Faults -> Faults\naddJunctionFaults bindings f fs = applySetters addFaultSetters fs\n	where\n		addFaultSetters = map (\\x -> addJunctionFault x f) bindings \n\naddJunctionFault :: (Identifier, Identifier) -> Fault -> Faults -> Faults\naddJunctionFault binding f fs = addFault newFault fs\n	where\n		newFault = f { nodes = binding }\n\ngetSameNodes :: [[Identifier]] -> Identifier -> [Identifier]\ngetSameNodes groups nodeId = filter (/= nodeId) neededGroup\n	where\n		neededGroups = filter (nodeId `elem`) groups\n		neededGroup = concat neededGroups\n",
+			"file": "src/Ouroboros/Fault.hs",
+			"file_size": 1445,
+			"file_write_time": 129968545983822421,
 			"settings":
 			{
-				"buffer_size": 3747,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Scheme/RemoveRecursion.hs",
-			"settings":
-			{
-				"buffer_size": 2184,
-				"line_ending": "Windows"
-			}
-		},
-		{
-			"file": "src/Ouroboros/Graphviz.hs",
-			"settings":
-			{
-				"buffer_size": 1024,
+				"buffer_size": 1423,
 				"line_ending": "Windows"
 			}
 		},
@@ -149,7 +126,55 @@
 			"file": "c17.bench",
 			"settings":
 			{
-				"buffer_size": 88,
+				"buffer_size": 78,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "c17.flt",
+			"settings":
+			{
+				"buffer_size": 5,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "c17.test",
+			"settings":
+			{
+				"buffer_size": 208,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/Ouroboros/Test/Language.hs",
+			"settings":
+			{
+				"buffer_size": 1221,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/Ouroboros/Test.hs",
+			"settings":
+			{
+				"buffer_size": 4025,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/Ouroboros/Fault/Parser.hs",
+			"settings":
+			{
+				"buffer_size": 1218,
+				"line_ending": "Windows"
+			}
+		},
+		{
+			"file": "src/Ouroboros/Test/Parser.hs",
+			"settings":
+			{
+				"buffer_size": 1591,
 				"line_ending": "Windows"
 			}
 		}
@@ -163,6 +188,18 @@
 			[
 				"Package Control: ",
 				"Package Control: Install Package"
+			],
+			[
+				"haskell",
+				"Haskell Buddy: Check code"
+			],
+			[
+				"sublime",
+				"Preferences: SublimeHaskell Settings – User"
+			],
+			[
+				"show",
+				"SublimeHaskell: Show type"
 			]
 		],
 		"width": 400.0
@@ -182,11 +219,52 @@
 	},
 	"file_history":
 	[
-		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.out.bench",
-		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.out.dot",
-		"/C/Users/wacca/Documents/GitHub/Ouroboros/Ouroboros.sublime-project",
-		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/Copy.hs",
+		"/C/Users/wacca/Documents/GitHub/jabberbot-0.15/examples/broadcast.py",
+		"/C/Users/wacca/Documents/GitHub/jabberbot-0.15/jabberbot.py",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Fault.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/Definition.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Test/Language.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Test/Parser.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/1.test",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/2.test",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/Common.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Test.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.test",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.out",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/Ouroboros.cabal",
+		"/I/data/bits.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/Deafen.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Bench/Parser.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Fault/Parser.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Common.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Main.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Bench/Language.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Fault/Language.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Bench.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/ToScheme.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme.hs",
 		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Graphviz/Language.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.bench",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Graphviz.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.out.bench",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.flt",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/RemoveRecursion.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/Concatenate.hs",
+		"/C/Users/wacca/Documents/GitHub/konfa/main/tests.py",
+		"/C/Users/wacca/Documents/GitHub/konfa/main/models.py",
+		"/C/Users/wacca/Documents/GitHub/konfa/main/views.py",
+		"/C/Users/wacca/Documents/GitHub/konfa/main/__init__.py",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/hope.warning",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/c17.out.dot",
+		"/D/study/Projects/GitHub/Ouroboros/.project",
+		"/C/Users/wacca/AppData/Roaming/Sublime Text 2/Packages/User/SublimeHaskell.sublime-settings",
+		"/C/Users/wacca/AppData/Roaming/Sublime Text 2/Packages/SublimeHaskell/SublimeHaskell.sublime-settings",
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme.hs",
+		"/I/data/Ouroboros/Ouroboros/Ouroboros.cabal",
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme/Common.hs",
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme/Copy.hs",
+		"/I/data/Ouroboros/Ouroboros/src/Ouroboros/Scheme/Definition.hs",
+		"/C/Users/wacca/Documents/GitHub/Ouroboros/src/Ouroboros/Scheme/Copy.hs",
 		"/C/Users/wacca/Documents/coslab1.txt",
 		"/C/Users/wacca/Documents/coslab2.txt"
 	],
@@ -199,7 +277,6 @@
 		"height": 0.0,
 		"where_history":
 		[
-			"C:\\Users\\wacca\\Documents\\GitHub\\Ouroboros"
 		]
 	},
 	"find_state":
@@ -207,10 +284,17 @@
 		"case_sensitive": false,
 		"find_history":
 		[
-			"genera",
-			"generate",
-			"head",
-			"scheme",
+			"idle_proc",
+			"tests",
+			"    ",
+			"vectors",
+			"Vectors",
+			"vectors",
+			"handleError",
+			"fault",
+			"nodes",
+			"parseId",
+			"getNames",
 			"arg.y",
 			"arg.x",
 			"x(2)",
@@ -226,6 +310,8 @@
 		"regex": false,
 		"replace_history":
 		[
+			"	",
+			"identifier",
 			"arg(2)",
 			"arg(1)",
 			"arg.y",
@@ -245,23 +331,23 @@
 	"groups":
 	[
 		{
-			"selected": 7,
+			"selected": 2,
 			"sheets":
 			[
 				{
 					"buffer": 0,
-					"file": "src/Ouroboros/Scheme/Common.hs",
+					"file": "src/Main.hs",
 					"settings":
 					{
-						"buffer_size": 7556,
+						"buffer_size": 3771,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								5427,
-								5427
+								1888,
+								1888
 							]
 						],
 						"settings":
@@ -271,32 +357,31 @@
 							"translate_tabs_to_spaces": true
 						},
 						"translation.x": 0.0,
-						"translation.y": 2044.0,
+						"translation.y": 516.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
 				},
 				{
 					"buffer": 1,
-					"file": "Ouroboros.cabal",
+					"file": "src/Ouroboros/Fault/Language.hs",
 					"settings":
 					{
-						"buffer_size": 973,
+						"buffer_size": 849,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								880,
-								880
+								246,
+								246
 							]
 						],
 						"settings":
 						{
-							"syntax": "Packages/Text/Plain text.tmLanguage",
-							"tab_size": 2,
-							"translate_tabs_to_spaces": true
+							"syntax": "Packages/Haskell/Haskell.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -306,128 +391,18 @@
 				},
 				{
 					"buffer": 2,
-					"file": "src/Ouroboros/Scheme.hs",
+					"file": "src/Ouroboros/Fault.hs",
 					"settings":
 					{
-						"buffer_size": 930,
+						"buffer_size": 1423,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								760,
-								760
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"tab_size": 3,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 3,
-					"file": "src/Ouroboros/Scheme/Definition.hs",
-					"settings":
-					{
-						"buffer_size": 736,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								481,
-								481
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 4,
-					"file": "src/Ouroboros/Scheme/Concatenate.hs",
-					"settings":
-					{
-						"buffer_size": 1128,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								312,
-								312
-							]
-						],
-						"settings":
-						{
-							"auto_name": "module Ouroboros.Scheme.Concatinate (",
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 5,
-					"file": "/C/Users/wacca/Documents/МЫСЛИ.txt",
-					"settings":
-					{
-						"buffer_size": 866,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								267,
-								267
-							]
-						],
-						"settings":
-						{
-							"auto_name": "1:",
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 140.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 6,
-					"file": "src/Ouroboros/Scheme/Copy.hs",
-					"settings":
-					{
-						"buffer_size": 669,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								256,
-								256
+								154,
+								154
 							]
 						],
 						"settings":
@@ -441,26 +416,130 @@
 					"type": "text"
 				},
 				{
-					"buffer": 7,
-					"file": "src/Main.hs",
+					"buffer": 3,
+					"file": "c17.bench",
 					"settings":
 					{
-						"buffer_size": 963,
+						"buffer_size": 78,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								464,
-								464
+								78,
+								78
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 4,
+					"file": "c17.flt",
+					"settings":
+					{
+						"buffer_size": 5,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								5,
+								5
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 5,
+					"file": "c17.test",
+					"settings":
+					{
+						"buffer_size": 208,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								208,
+								208
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Text/Plain text.tmLanguage"
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 6,
+					"file": "src/Ouroboros/Test/Language.hs",
+					"settings":
+					{
+						"buffer_size": 1221,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								495,
+								495
 							]
 						],
 						"settings":
 						{
 							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
+							"translate_tabs_to_spaces": false
+						},
+						"translation.x": 0.0,
+						"translation.y": 0.0,
+						"zoom_level": 1.0
+					},
+					"type": "text"
+				},
+				{
+					"buffer": 7,
+					"file": "src/Ouroboros/Test.hs",
+					"settings":
+					{
+						"buffer_size": 4025,
+						"regions":
+						{
+						},
+						"selection":
+						[
+							[
+								1161,
+								1161
+							]
+						],
+						"settings":
+						{
+							"syntax": "Packages/Haskell/Haskell.tmLanguage",
+							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
 						"translation.y": 0.0,
@@ -470,18 +549,18 @@
 				},
 				{
 					"buffer": 8,
-					"file": "src/Ouroboros/Scheme/Deafen.hs",
+					"file": "src/Ouroboros/Fault/Parser.hs",
 					"settings":
 					{
-						"buffer_size": 1103,
+						"buffer_size": 1218,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								232,
-								232
+								440,
+								440
 							]
 						],
 						"settings":
@@ -497,18 +576,18 @@
 				},
 				{
 					"buffer": 9,
-					"file": "src/Ouroboros/Scheme/ToScheme.hs",
+					"file": "src/Ouroboros/Test/Parser.hs",
 					"settings":
 					{
-						"buffer_size": 3747,
+						"buffer_size": 1591,
 						"regions":
 						{
 						},
 						"selection":
 						[
 							[
-								338,
-								338
+								1371,
+								1371
 							]
 						],
 						"settings":
@@ -517,88 +596,7 @@
 							"translate_tabs_to_spaces": false
 						},
 						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 10,
-					"file": "src/Ouroboros/Scheme/RemoveRecursion.hs",
-					"settings":
-					{
-						"buffer_size": 2184,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								1747,
-								1747
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"tab_size": 4,
-							"translate_tabs_to_spaces": true
-						},
-						"translation.x": 0.0,
-						"translation.y": 215.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 11,
-					"file": "src/Ouroboros/Graphviz.hs",
-					"settings":
-					{
-						"buffer_size": 1024,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								189,
-								189
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Haskell/Haskell.tmLanguage",
-							"translate_tabs_to_spaces": false
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
-						"zoom_level": 1.0
-					},
-					"type": "text"
-				},
-				{
-					"buffer": 12,
-					"file": "c17.bench",
-					"settings":
-					{
-						"buffer_size": 88,
-						"regions":
-						{
-						},
-						"selection":
-						[
-							[
-								88,
-								88
-							]
-						],
-						"settings":
-						{
-							"syntax": "Packages/Text/Plain text.tmLanguage"
-						},
-						"translation.x": 0.0,
-						"translation.y": 0.0,
+						"translation.y": 495.0,
 						"zoom_level": 1.0
 					},
 					"type": "text"
@@ -637,6 +635,10 @@
 		]
 	},
 	"menu_visible": true,
+	"output.HaskellBuddyPanel":
+	{
+		"height": 0.0
+	},
 	"replace":
 	{
 		"height": 62.0
@@ -666,6 +668,6 @@
 	"show_open_files": false,
 	"show_tabs": true,
 	"side_bar_visible": true,
-	"side_bar_width": 215.0,
+	"side_bar_width": 205.0,
 	"status_bar_visible": true
 }

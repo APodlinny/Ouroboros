@@ -1,16 +1,16 @@
 module Ouroboros.Bench.Parser (
-    parseFile
+    parseBenchFile,
+    identifier,
+    eol
 ) where
 
-import Ouroboros.Bench.Language
 import Text.ParserCombinators.Parsec
 
-handleError :: Either ParseError Program -> Program
-handleError (Left err) = error $ "Error: " ++ (show err)
-handleError (Right program) = program
+import Ouroboros.Common
+import Ouroboros.Bench.Language
 
-parseFile :: String -> Program
-parseFile str = handleError $ parse program "" str
+parseBenchFile :: String -> Program
+parseBenchFile str = unpackEither $ parse program "" str
 
 program :: Parser Program
 program = do
@@ -30,7 +30,7 @@ emptyLine = do
 codeLine :: Parser TextLine
 codeLine = do
     code <- command
-    result <- (commentLine >>= (\c -> return $ Code code c)) <|>
+    result <- (commentLine >>= (return . Code code)) <|>
         (return $ Code code (Comment ""))
     return result
     

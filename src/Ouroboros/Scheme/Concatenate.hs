@@ -7,7 +7,8 @@ import Ouroboros.Scheme.Definition
 
 concatSchemes :: [(Identifier, Identifier)] -> Scheme -> Scheme -> Scheme
 concatSchemes nodesToBind schemeA schemeB = 
-	validateScheme "concatSchemes" $ applySetters concatSetters concatedSchemes
+	validateScheme "concatSchemes" $ 
+	applySetters concatSetters concatedSchemes
 	where
 		concatedSchemes = Scheme {
 			name = name schemeA,

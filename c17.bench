@@ -1,8 +1,8 @@
-# test with simple recursion
-
+# test
 input(x)
 output(y)
 
-y = xor(x, z1)
+g1 = and(x, z1)
+y = not(g1)
 z = not(y)
 z1 = dff(z)

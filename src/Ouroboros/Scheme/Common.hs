@@ -9,16 +9,24 @@ module Ouroboros.Scheme.Common (
 	generateName,
 	generateNameWithPattern,
 	applySetters,
-    stateInputs,
-	stateOutputs,
-    validateScheme
+    validateScheme,
+    nonPrimaryOutputs,
+    nonPrimaryInputs,
+    inputPorts,
+    outputPorts,
+    ioPorts,
+    stateIOs,
+    nonStateIOs,
+    getNameWithoutIndex,
+    similarNames,
+    logger
 ) where
 
-import Ouroboros.Scheme.Definition
 import Data.List
 import qualified Data.Set as Set 
-import Control.Exception
-import System.IO.Unsafe
+
+import Ouroboros.Common
+import Ouroboros.Scheme.Definition
 
 validateScheme :: String -> Scheme -> Scheme
 validateScheme context s = 
@@ -166,59 +174,75 @@ nextName str =
 
 		name = join "_" $ init parts
 
+similarNames :: Scheme -> [[Identifier]]
+similarNames scheme = 
+    filter (\x -> length x /= 1) $
+    groupby (getNameWithoutIndex . str) $
+    getNames scheme
 
-catchBottom :: a -> Maybe a
-catchBottom x = unsafePerformIO $ handle stub $ evalSafe x
+nameMatchesPattern :: String -> String -> Bool
+nameMatchesPattern pattern str = 
+    (getNameWithoutIndex pattern) == (getNameWithoutIndex str)
+
+getNameWithoutIndex :: String -> String
+getNameWithoutIndex str = getName str
     where
-        stub :: SomeException -> IO (Maybe a)
-        stub _ = return Nothing
+        parts x = split '_' x
+        name x = join "_" $ init $ parts x
+        lastPart x = last $ parts x
+        hasIndex x = (startswith "[" $ lastPart x) &&
+                    (endswith "]" $ lastPart x) &&
+                    (isInt $ drop 1 $ init $ lastPart x)
 
-        evalSafe :: a -> IO (Maybe a)
-        evalSafe x = evaluate x >>= (return . Just)
+        isInt x = case catchBottom (read x :: Int) of
+            Nothing -> False
+            Just _ -> True
 
-applySetters :: [a -> a] -> a -> a
-applySetters [] x = x
-applySetters (f : fs) x = applySetters fs (f x)
+        getName x = 
+            if hasIndex x then
+                name x
+            else
+                x
 
-stateOutputs :: Scheme -> [Identifier]
-stateOutputs scheme = result
-	where
-		defs = nodeDefinitions scheme
-		outputs = filter (\d -> nodeType d == OUTPUT) defs
-		primary = primaryIOs scheme
-		isPrimary d = elem (nodeName d) primary
-		result = map nodeName $ filter (not . isPrimary) outputs
+nonPrimaryInputs :: Scheme -> [Identifier]
+nonPrimaryInputs = nonPrimaryPorts INPUT
 
-stateInputs :: Scheme -> [Identifier]
-stateInputs scheme = result
+nonPrimaryOutputs :: Scheme -> [Identifier]
+nonPrimaryOutputs = nonPrimaryPorts OUTPUT
+
+nonPrimaryPorts :: NodeType -> Scheme -> [Identifier]
+nonPrimaryPorts node scheme = result
     where
         defs = nodeDefinitions scheme
-        inputs = filter (\d -> nodeType d == INPUT) defs
+        ports = filter (\d -> nodeType d == node) defs
         primary = primaryIOs scheme
         isPrimary d = elem (nodeName d) primary
-        result = map nodeName $ filter (not . isPrimary) inputs
-        
-join :: [a] -> [[a]] -> [a]
-join separator items = foldl1 joiner items
-    where
-        joiner a b = a ++ separator ++ b
-        
-split :: Eq a => a -> [a] -> [[a]]
-split separator xs = reverse $ iterate spanResult []
-    where
-        spanResult = spanSplit separator xs
-        iterate (elt, []) result = elt : result
-        iterate (elt, other) result = iterate (spanSplit separator other) (elt : result)
+        result = map nodeName $ filter (not . isPrimary) ports
 
-spanSplit :: Eq a => a -> [a] -> ([a], [a])
-spanSplit separator xs = (element, other)
-    where
-        result = span (/= separator) xs
-        element = fst result
-        other = drop 1 $ snd result
-        
-startswith :: Eq a => [a] -> [a] -> Bool
-startswith begining xs = begining == (take (length begining) xs)
+stateIOs :: Scheme -> [Identifier]
+stateIOs scheme = 
+    nub $ 
+    concat $ 
+    map (\(a, b) -> [a, b]) $
+    stateBindings scheme
 
-endswith :: Eq a => [a] -> [a] -> Bool
-endswith ending xs = ending == drop (length xs - length ending) xs
+nonStateIOs :: Scheme -> [Identifier]
+nonStateIOs scheme = 
+    filter (\x -> not $ 
+                elem x $ 
+                stateIOs scheme) $ 
+    map nodeName $ 
+    ioPorts scheme
+
+inputPorts :: Scheme -> [Identifier]
+inputPorts = map nodeName . filter (\d -> nodeType d == INPUT) . ioPorts
+
+outputPorts :: Scheme -> [Identifier]
+outputPorts = map nodeName . filter (\d -> nodeType d == OUTPUT) . ioPorts
+
+ioPorts :: Scheme -> [NodeDefinition]
+ioPorts scheme = ports
+    where
+        defs = nodeDefinitions scheme
+        ports = filter isIO defs
+        isIO x = (nodeType x == INPUT) || (nodeType x == OUTPUT)

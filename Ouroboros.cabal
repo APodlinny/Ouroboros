@@ -10,11 +10,19 @@ executable Ouroboros
   build-depends:   base >= 4,
                    parsec,
                    containers,
-                   process
+                   process,
+                   strict
   ghc-options:     -Wall -fno-warn-unused-do-bind
-  other-modules:   Ouroboros.Bench,
+  other-modules:   Ouroboros.Common
+                   Ouroboros.Bench,
                    Ouroboros.Bench.Language,
                    Ouroboros.Bench.Parser,
+                   Ouroboros.Fault,
+                   Ouroboros.Fault.Language,
+                   Ouroboros.Fault.Parser,
+                   Ouroboros.Test,
+                   Ouroboros.Test.Language,
+                   Ouroboros.Test.Parser,
                    Ouroboros.Scheme,
                    Ouroboros.Scheme.Definition,
                    Ouroboros.Scheme.FromScheme,

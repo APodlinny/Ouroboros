@@ -9,7 +9,7 @@ deafenStateOutputs :: Scheme -> Scheme
 deafenStateOutputs scheme = 
 	validateScheme "deafenStateOutputs" $ applySetters setters scheme
 	where
-		setters = map deafenOutput $ stateOutputs scheme
+		setters = map deafenOutput $ nonPrimaryOutputs scheme
 
 deafenOutput :: Identifier -> Scheme -> Scheme
 deafenOutput nodeId scheme = 
@@ -32,5 +32,5 @@ deafenOutput nodeId scheme =
 			addOutput nameForAnd]
 
 		names = getNames scheme
-		nameForNot = generateNameWithPattern names nodeId
-		nameForAnd = generateNameWithPattern (nameForNot : names) nameForNot
+		nameForNot = generateNameWithPattern names (Identifier $ str nodeId ++ "_not")
+		nameForAnd = generateNameWithPattern (nameForNot : names) (Identifier $ str nameForNot ++ "_and")

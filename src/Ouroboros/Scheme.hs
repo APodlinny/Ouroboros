@@ -12,8 +12,12 @@ module Ouroboros.Scheme (
    outputId,
    copyScheme,
    copySchemeTimes,
-   concatSchemes
+   concatSchemes,
+   getNames,
+   similarNames
 ) where
+
+import Data.List
 
 import Ouroboros.Scheme.Definition
 import Ouroboros.Scheme.FromScheme

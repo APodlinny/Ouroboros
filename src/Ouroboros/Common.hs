@@ -30,6 +30,7 @@ applySetters [] x = x
 applySetters (f : fs) x = applySetters fs (f x)
 
 join :: [a] -> [[a]] -> [a]
+join _ [] = []
 join separator items = foldl1 joiner items
     where
         joiner a b = a ++ separator ++ b

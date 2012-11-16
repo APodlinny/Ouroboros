@@ -7,6 +7,8 @@ import System.Cmd
 import System.Console.GetOpt
 import System.Exit
 import qualified System.IO.Strict as Strict
+import Control.Exception
+import Data.Maybe
 
 import Ouroboros.Common
 import Ouroboros.Bench
@@ -17,66 +19,141 @@ import Ouroboros.Test
 
 data Parameters = Parameters {
 	srcFile :: String,
-    dstFile :: String,
     fltFile :: String,
-	generateGraph :: Bool,
-    numCopies :: Int
+    maxCopies :: Int
 } deriving (Show)
 
 defaultParameters :: Parameters
 defaultParameters = Parameters {
     srcFile = "",
     fltFile = "",
-    generateGraph = False,
-    numCopies = 1
+    maxCopies = 10
 }
 
 options :: [OptDescr (Parameters -> Parameters)]
 options = [
-    Option ['g'] ["graph"]  (NoArg (\p -> p { generateGraph = True })) "Draw scheme graph or not (GraphViz required).",
-    Option ['i'] ["input"]  (ReqArg (\x p -> p { srcFile = x }) "File") "Input file",
-    Option ['f'] ["fault"]  (ReqArg (\x p -> p { fltFile = x }) "File") "Fault file",
-    Option ['c'] ["copies"] (ReqArg (\x p -> p { numCopies = read x }) "Integer") "How many copies of the specified scheme to make."]
+    Option ['i'] ["input"]  (ReqArg (\x p -> p { srcFile = x }) "File") "Input file.",
+    Option ['f'] ["fault"]  (ReqArg (\x p -> p { fltFile = x }) "File") "Fault file.",
+    Option ['c'] ["copies"] (ReqArg (\x p -> p { maxCopies = read x }) "Integer") "How many copies of the specified scheme to make. Dafault value is 10."]
 
 main :: IO ()
 main = do
-    args <- getArgs
-    let (flags, nonOpts, errors) = getOpt RequireOrder options args
-    let parameters = foldr ($) defaultParameters flags
-    if (length flags == 0) || (length errors /= 0) then do
-        putStrLn $ concat errors
-        usage
-    else return ()
-
-    checkParameters parameters
+    parameters <- getParameters >>= checkParameters
 
     let srcName = srcFile parameters
 
-    benchSrc <- readFile srcName
-    let schemeSrc = programToScheme $ parseBenchFile benchSrc 
-    let schemeDst = deafenStateOutputs $ copySchemeTimes (numCopies parameters) $ removeRecursions schemeSrc
+    putStrLn "Parsing input file"
+    benchSrc <- readFile srcName >>= (return . parseBenchFile)
+    schemeSrc <- evaluate $ programToScheme benchSrc
     
-    writeFile ((nameWithoutExtention srcName) ++ ".out") $ 
-        show $ 
-        programFromScheme schemeDst
+    putStrLn "Removing recursions"
+    noRecScheme <- evaluate $ removeRecursions schemeSrc
 
-    faultsStr <- Strict.readFile $ fltFile parameters
-    let faults = parseFaultsFile faultsStr
-    let additionalFaults = addSimilarFaults schemeDst faults
-    print additionalFaults
+    putStrLn "Reading faults file"
+    faultsFromFile <- readFile (fltFile parameters) >>= (return . parseFaultsFile)
 
-    runAtalanta ((nameWithoutExtention srcName) ++ ".out") (fltFile parameters)
-    testFile <- Strict.readFile $ (nameWithoutExtention srcName) ++ ".test"
-    let tests = parseTestsFile testFile
-    let packed = repackTests schemeDst tests
-    writeFile ((nameWithoutExtention srcName) ++ ".test") $ show packed
+    analisysResult <- analiseScheme parameters noRecScheme (maxCopies parameters) (faults faultsFromFile)
 
-checkParameters :: Parameters -> IO ()
-checkParameters p = 
+    putStrLn "Writing test file"
+    writeFile ((nameWithoutExtention srcName) ++ ".test") $ show analisysResult
+    putStrLn "Exiting"
+    
+
+{-main = do
+    faults <- Strict.readFile "scheme.flt" >>= (return . parseFaultsFile)
+    scheme <- Strict.readFile "scheme.bench" >>= (return . deafenStateOutputs . removeRecursions . programToScheme . parseBenchFile)
+    writeFile "scheme.bench.out" $ show $ programFromScheme scheme
+    runAtalanta "scheme.bench.out" "scheme.flt"
+    tests <- Strict.readFile "scheme.test" >>= (return . parseTestsFile)
+    print $ repackTests scheme tests-}
+
+analiseScheme :: Parameters -> Scheme -> Int -> [Fault] -> IO Tests
+analiseScheme parameters noRecScheme maxCopies faults = do
+    iterationResult <- iteration 1 0 faults (Tests [])
+    
+    let testedFaults = map fault $ filter isFaultBlock $ blocks iterationResult
+    let untestedFaults = filter (not . (`elem` testedFaults)) faults
+    let emptyTests = map (\x -> FaultDescription x []) untestedFaults
+    let fullTests = addTextBlocks iterationResult emptyTests
+    
+    return fullTests
+
+    where
+        iteration :: Int -> Int -> [Fault] -> Tests -> IO Tests
+        iteration copies step faults lastTests = do
+            putStrLn $ "Transforming scheme (" ++ (show copies) ++ " copy, " ++ (show step) ++ " step)"
+            schemeCopied <- evaluate $ copySchemeTimes copies step noRecScheme
+            schemeDst <- evaluate $ deafenStateOutputs schemeCopied
+
+            let benchFile = (nameWithoutExtention (srcFile parameters)) ++ ".out"
+            let faultFile = (fltFile parameters) ++ ".tmp"
+            let testFile = (nameWithoutExtention (srcFile parameters)) ++ ".test"
+
+            putStrLn "Writing transformed scheme"
+            writeFile benchFile $ 
+                show $ 
+                programFromScheme schemeDst
+
+            putStrLn "Writing faults file"
+            writeFile faultFile $
+                show $
+                Faults faults
+
+            putStrLn "Analising transformed scheme with Atalanta"
+            runAtalanta benchFile faultFile
+
+            tests <- Strict.readFile testFile >>= (return . parseTestsFile)
+            let repackedTests = repackTests schemeDst tests
+            
+            let testedFaults = getTestedFaults schemeDst repackedTests
+            let untestedFaults = getUntestedFaults schemeDst repackedTests
+            
+            onlyPackedTests <- evaluate $ 
+                map fromJust $ 
+                filter isJust $ 
+                map (getTestByFault repackedTests) testedFaults
+
+            let additionalTests = removeUnnecessaryInfo schemeDst $ addTextBlocks (removeTestsInfo repackedTests) onlyPackedTests
+            
+            let newTests = addTextBlocks lastTests (blocks $ additionalTests)
+            
+            if length untestedFaults == 0 then do
+                putStrLn "Analisys is finished, forming output test file"
+                return newTests
+            else do
+                putStrLn "Untested faults at current step:"
+                putStrLn $ join ", " $ map show untestedFaults
+
+                if step < (copies - 1) then
+                    iteration copies (step + 1) untestedFaults newTests
+                else if copies < maxCopies then
+                    iteration (copies + 1) 0 untestedFaults newTests
+                else do
+                    putStrLn "Can't generate tests for remained faults."
+                    return newTests
+
+
+checkParameters :: Parameters -> IO Parameters
+checkParameters p = do
     if (srcFile p == "") || (fltFile p == "") then do
         usage
-    else
-        return ()
+    else return ()
+
+    return p
+
+getParameters :: IO Parameters
+getParameters = do
+    args <- getArgs
+    
+    let (flags, nonOpts, errors) = getOpt RequireOrder options args
+    let parameters = foldr ($) defaultParameters flags
+    
+    if (length flags == 0) || (length errors /= 0) then do
+        putStrLn $ concat errors
+        usage
+    else return () 
+
+    return parameters
 
 usage :: IO ()
 usage = do
@@ -100,31 +177,9 @@ runAtalanta bench fault = do
         ExitFailure _ -> return ()
         ExitSuccess -> return ()
 
-{-
-main :: IO()
-main = do
-    [srcFile] <- getArgs
-    file1 <- readFile (srcFile ++ ".bench")
-
-    let bench1 = parseFile file1
-    let scheme1 = programToScheme bench1
-    let graph1 = graphFromScheme scheme1
-    let scheme2 = deafenStateOutputs $ copySchemeTimes 3 $ removeRecursions scheme1
-    let graph2 = graphFromScheme scheme2
-    let bench2 = programFromScheme scheme2
-    let file2 = show bench2
-
-    print $ similarNames scheme2
-
-    writeFile (srcFile ++ ".dot") $ show graph1
-    writeFile (srcFile ++ ".out.dot") $ show graph2
-    writeFile (srcFile ++ ".out.bench") $ file2
-
-    drawGraph srcFile
-    drawGraph (srcFile ++ ".out")
-
-drawGraph :: String -> IO ()
-drawGraph filename = do
-	system $ "dot -Tpng " ++ filename ++ ".dot -o " ++ filename ++ ".png"
-	return ()
--}
+drawGraph :: Scheme -> String -> IO ()
+drawGraph scheme filename = do
+    let graph = graphFromScheme scheme
+    writeFile (filename ++ ".dot") $ show graph
+    system $ "dot -Tpng " ++ filename ++ ".dot -o " ++ filename ++ ".png"
+    return ()

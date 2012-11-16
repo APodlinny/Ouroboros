@@ -17,7 +17,8 @@ module Ouroboros.Scheme (
    similarNames
 ) where
 
-import Data.List
+import Data.List hiding (concat)
+import Prelude hiding (concat)
 
 import Ouroboros.Scheme.Definition
 import Ouroboros.Scheme.FromScheme
@@ -28,12 +29,24 @@ import Ouroboros.Scheme.Copy
 import Ouroboros.Scheme.Concatenate
 import Ouroboros.Scheme.Common
 
-copySchemeTimes :: Int -> Scheme -> Scheme
-copySchemeTimes 1 s = s
-copySchemeTimes n s = copySchemeTimes (n - 1) concated
+copySchemeTimes :: Int -> Int -> Scheme -> Scheme
+copySchemeTimes count step s = iterate count step s s
    where
-      s1 = s
-      s2 = copyScheme s1
+      iterate 1 _ lastScheme  _ = lastScheme
+
+      iterate count 0 lastScheme source = iterate (count - 1) 0 concated newScheme
+         where
+            concated = concat lastScheme newScheme
+            newScheme = copyScheme source
+
+      iterate count step lastScheme source = iterate (count - 1) (step - 1) concated newScheme
+         where
+            concated = concat newScheme lastScheme
+            newScheme = copyScheme source
+
+concat :: Scheme -> Scheme -> Scheme
+concat s1 s2 = concated
+   where
       stateBinds1 = stateBindings s1
       stateBinds2 = stateBindings s2
       concated = concatSchemes binds s1 s2

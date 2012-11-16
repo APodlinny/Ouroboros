@@ -1,11 +1,22 @@
 module Ouroboros.Test (
+	Tests(..),
+	TextBlock(..),
 	parseTestsFile,
 	repackTests,
+	unpackTests,
 	areTestsPacked,
-	isTestPacked
+	isTestPacked,
+	getUntestedFaults,
+	getTestedFaults,
+	removeUnnecessaryInfo,
+	addTextBlocks,
+	removeTestsInfo,
+	getTestByFault,
+	isFaultBlock
 ) where
 
 import Data.List
+import Data.Maybe
 
 import Ouroboros.Common
 import Ouroboros.Test.Parser
@@ -13,8 +24,63 @@ import Ouroboros.Test.Language
 import Ouroboros.Scheme
 import Ouroboros.Scheme.Common
 
+addTextBlocks :: Tests -> [TextBlock] -> Tests
+addTextBlocks tests newBlocks = Tests {
+	blocks = (blocks tests) ++ newBlocks
+}
+
+removeTestsInfo :: Tests -> Tests
+removeTestsInfo tests = Tests {
+	blocks = filter (not . isFaultBlock) $ blocks tests
+}
+
+getTestByFault :: Tests -> Fault -> Maybe TextBlock
+getTestByFault tests neededFault = result
+	where
+		faultBlocks = filter (\x -> (isFaultBlock x) && (fault x == neededFault)) $ blocks tests
+		result = case length faultBlocks of
+			0 -> Nothing
+			_ -> Just $ head faultBlocks
+
+removeUnnecessaryInfo :: Scheme -> Tests -> Tests
+removeUnnecessaryInfo scheme tests = result
+	where
+		primary = primaryIOs scheme
+		primaryIndices = primaryInputs ++ primaryOutputs
+		necessary = separatorIndex : primaryIndices
+		separatorIndex = ioIndexDiff - 1
+
+		primaryInputs = getIndices (`elem` primary) id $ getInputsList tests
+		primaryOutputs = getIndices (`elem` primary) (+ ioIndexDiff) $ getOutputsList tests
+
+		ioIndexDiff = 1 + (length $ getInputsList tests)
+		result = Tests $ map removeUnnecesarryInfoFromBlock $ blocks tests
+
+		removeUnnecesarryInfoFromBlock (Comment str) = Comment str
+		removeUnnecesarryInfoFromBlock (InputsList list) = InputsList $ filter (`elem` primary) list
+		removeUnnecesarryInfoFromBlock (OutputsList list) = OutputsList $ filter (`elem` primary) list
+		removeUnnecesarryInfoFromBlock (FaultDescription f []) = FaultDescription f []
+		removeUnnecesarryInfoFromBlock (FaultDescription f ts) = FaultDescription {
+			fault = f,
+			tests = map removeUnnecessary ts
+		}
+			where
+				removeUnnecessary test = map (test !!) $ filter (`elem` necessary) $ [0 .. length test - 1]
+
+getTestedFaults :: Scheme -> Tests -> [Fault]
+getTestedFaults scheme tests = filter (isTestPacked scheme tests) faultsFromTest
+	where  
+		faultsFromTest = map fault $ filter isFaultBlock $ blocks tests
+
+getUntestedFaults :: Scheme -> Tests -> [Fault]
+getUntestedFaults scheme tests = filter (not . isTestPacked scheme tests) faultsFromTest
+	where  
+		faultsFromTest = map fault $ filter isFaultBlock $ blocks tests
+
 areTestsPacked :: Scheme -> Tests -> Bool
-areTestsPacked scheme tests = all (isBlockPacked scheme tests) $ blocks tests
+areTestsPacked scheme tests = all (isTestPacked scheme tests) faultsFromTest
+	where
+		faultsFromTest = map fault $ filter isFaultBlock $ blocks tests
 
 isTestPacked :: Scheme -> Tests -> Fault -> Bool
 isTestPacked scheme tests faultA = result
@@ -22,7 +88,7 @@ isTestPacked scheme tests faultA = result
 		faultBlocks = filter isFaultBlock $ blocks tests
 		neededBlocks = filter (\x -> fault x == faultA) faultBlocks
 		result = case neededBlocks of
-			[] -> True
+			[] -> False
 			(x:_) -> isBlockPacked scheme tests x
 
 isBlockPacked :: Scheme -> Tests -> TextBlock -> Bool
@@ -44,7 +110,7 @@ repackTests scheme tests = Tests {
 		varInfo = (nonStateIndices, stateIndices)
 
 		state = stateIOs scheme
-		nonState = nonStateIOs scheme
+		nonState = primaryIOs scheme
 
 		stateIndices = stateInputIndices ++ stateOutputIndices
 		nonStateIndices = nonStateInputIndices ++ nonStateOutputIndices
@@ -65,18 +131,20 @@ repackTestsGroup portsInfo (FaultDescription f ts) = FaultDescription {
 repackTestsGroup _ x = x
 
 packTests :: ([Int], [Int]) -> [String] -> [String]
-packTests (ports, states) tests = concat packedGroups
+packTests (ports, states) tests = map fromJust $ filter isJust packedGroups
 	where
 		unique = uniqueTests tests
 		grouped = groupby (portVars ports) unique
 		portVars indices v = map (v !!) indices
-		stateCombinations = 2 ^ (length states `div` 2)
+		stateCombinations = 2 ^ (length states)
 		packedGroups = map packGroup grouped
 		indices = [0 .. (length $ head tests) - 1]
+		
+		packGroup :: [String] -> Maybe String
 		packGroup group = if (length group < stateCombinations) || (length group == 1) then
-								group
+								Nothing
 						  else
-								[map setter indices]
+								Just $ map setter indices
 						  where
 								setter i = if elem i states then 'x' else (head group) !! i
 

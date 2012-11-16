@@ -32,4 +32,9 @@ concatSetter (from, to) s = applySetters concatAlgo s
 		concatAlgo = [
 			removeInput to,
 			removeOutput from,
-			rename to from]
+			addBuffer to from]
+
+		addBuffer to from s = s {
+			bindings = (from, to) : (bindings s),
+			nodeDefinitions = (NodeDefinition to BUF) : (nodeDefinitions s)
+		}

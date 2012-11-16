@@ -1,6 +1,8 @@
 module Ouroboros.Fault (
 	parseFaultsFile,
-	addSimilarFaults
+	addSimilarFaults,
+	Faults(..),
+	Fault(..)
 ) where
 
 import Ouroboros.Common

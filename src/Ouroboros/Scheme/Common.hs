@@ -18,6 +18,7 @@ module Ouroboros.Scheme.Common (
     stateIOs,
     nonStateIOs,
     getNameWithoutIndex,
+    getIndexWithoutName,
     similarNames,
     logger
 ) where
@@ -183,6 +184,27 @@ similarNames scheme =
 nameMatchesPattern :: String -> String -> Bool
 nameMatchesPattern pattern str = 
     (getNameWithoutIndex pattern) == (getNameWithoutIndex str)
+
+getIndexWithoutName :: String -> Int
+getIndexWithoutName str = 
+    if hasIndex str then
+        readIndex str
+    else
+        -1
+    where
+        parts x = split '_' x
+        lastPart x = last $ parts x
+        hasIndex x = (startswith "[" $ lastPart x) &&
+                    (endswith "]" $ lastPart x) &&
+                    (isInt $ drop 1 $ init $ lastPart x)
+
+        isInt x = case catchBottom (read x :: Int) of
+            Nothing -> False
+            Just _ -> True
+
+        readIndex x = case catchBottom (read x :: Int) of
+            Nothing -> -1
+            Just n -> n
 
 getNameWithoutIndex :: String -> String
 getNameWithoutIndex str = getName str

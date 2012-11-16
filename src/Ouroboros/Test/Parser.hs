@@ -26,7 +26,6 @@ parseBlock = try parseInputsList <|>
 
 parseComment :: Parser TextBlock
 parseComment = do
-	many $ char ' '
 	char '*'
 	comment <- many $ noneOf "\r\n"
 	eol
@@ -41,16 +40,26 @@ parseOutputsList = parseNodeList outputsMessage >>= (return . OutputsList)
 
 parseNodeList :: String -> Parser [Identifier]
 parseNodeList description = do
-	many $ char ' '
-	char '*'
-	many $ char ' '
+	string "* "
 	string description
-	many $ char ' '
 	eol
-	many $ char ' '
+	--nodes <- parseList
+	string "  "
 	nodes <- identifier `sepEndBy1` (char ' ')
 	eol
 	many1 $ oneOf " \n"
+	return nodes
+
+parseList :: Parser [Identifier]
+parseList = do
+	lines <- parseListLine `endBy1` eol
+	return $ concat lines
+
+parseListLine :: Parser [Identifier]
+parseListLine = do
+	string "  "
+	nodes <- identifier `sepBy` (char ' ')
+	char ' '
 	return nodes
 
 parseFaultDescription :: Parser TextBlock

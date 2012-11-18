@@ -16,14 +16,15 @@ parseFaultsFile str = unpackEither $ parse parseFaults "" str
 parseFaults :: Parser Faults
 parseFaults = do
 	lines <- parseFault `sepEndBy1` eol
-	return $ Faults lines
+	return $ Faults $ concat lines
 
-parseFault :: Parser Fault
-parseFault = try parseJunction <|>
-			 parseNode <|>
-			 fail "unrecognized line"
+parseFault :: Parser [Fault]
+parseFault = 
+	try parseJunction <|>
+	parseNode <|>
+	fail "unrecognized line"
 
-parseJunction :: Parser Fault
+parseJunction :: Parser [Fault]
 parseJunction = do
 	idA <- identifier
 	many $ char ' '
@@ -31,20 +32,24 @@ parseJunction = do
 	many $ char ' '
 	idB <- identifier
 	many $ char ' '
-	f <- parseFaultType
-	return $ Junction (idA, idB) f
+	f <- parseFaultTypes
+	return $ map (Junction (idA, idB)) f
 
-parseNode :: Parser Fault
+parseNode :: Parser [Fault]
 parseNode = do
 	idA <- identifier
 	many $ char ' '
-	f <- parseFaultType
-	return $ Node idA f
+	f <- parseFaultTypes
+	return $ map (Node idA) f
+
+parseFaultTypes :: Parser [FaultType]
+parseFaultTypes = parseFaultType `sepBy1` (char ' ')
 
 parseFaultType :: Parser FaultType
-parseFaultType = try parseFaultAtOne <|>
-				 try parseFaultAtZero <|>
-				 fail "unrecognized fault type"
+parseFaultType = 
+	try parseFaultAtOne <|>
+	parseFaultAtZero <|>
+	fail "unrecognized fault type"
 
 parseFaultAtOne :: Parser FaultType
 parseFaultAtOne = do

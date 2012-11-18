@@ -107,13 +107,15 @@ repackTests scheme tests = Tests {
 }
 	where
 		repackBlock = repackTestsGroup varInfo
-		varInfo = (nonStateIndices, stateIndices)
+		varInfo = (nonStateIndices, stateIndices, primaryIndices)
 
 		state = stateIOs scheme
-		nonState = primaryIOs scheme
+		nonState = filter (not . (`elem` state)) $ getNames scheme
+		primary = primaryIOs scheme
 
 		stateIndices = stateInputIndices ++ stateOutputIndices
 		nonStateIndices = nonStateInputIndices ++ nonStateOutputIndices
+		primaryIndices = primaryInputIndices ++ primaryOutputIndices
 
 		stateInputIndices = getIndices (`elem` state) id $ getInputsList tests
 		stateOutputIndices = getIndices (`elem` state) (+ ioIndexDiff) $ getOutputsList tests
@@ -121,19 +123,26 @@ repackTests scheme tests = Tests {
 		nonStateInputIndices = getIndices (`elem` nonState) id $ getInputsList tests
 		nonStateOutputIndices = getIndices (`elem` nonState) (+ ioIndexDiff) $ getOutputsList tests
 
+		primaryInputIndices = getIndices (`elem` primary) id $ getInputsList tests
+		primaryOutputIndices = getIndices (`elem` primary) (+ ioIndexDiff) $ getOutputsList tests		
+
 		ioIndexDiff = 1 + (length $ getInputsList tests)
 
-repackTestsGroup :: ([Int], [Int]) -> TextBlock -> TextBlock
+repackTestsGroup :: ([Int], [Int], [Int]) -> TextBlock -> TextBlock
 repackTestsGroup portsInfo (FaultDescription f ts) = FaultDescription {
 	fault = f,
 	tests = packTests portsInfo $ unpackTests ts
 }
 repackTestsGroup _ x = x
 
-packTests :: ([Int], [Int]) -> [String] -> [String]
-packTests (ports, states) tests = map fromJust $ filter isJust packedGroups
+packTests :: ([Int], [Int], [Int]) -> [String] -> [String]
+packTests (ports, states, primary) tests = 
+	uniqueTestsAt primary $
+	map fromJust $ 
+	filter isJust packedGroups
+	
 	where
-		unique = uniqueTests tests
+		unique = nub tests
 		grouped = groupby (portVars ports) unique
 		portVars indices v = map (v !!) indices
 		stateCombinations = 2 ^ (length states)
@@ -168,8 +177,11 @@ setVar position bit vector = map setter indices
 		indices = [0 .. (length vector) - 1]
 		setter i = if i == position then bit else vector !! i
 
-uniqueTests :: [String] -> [String]
-uniqueTests = nub
+uniqueTestsAt :: [Int] -> [String] -> [String]
+uniqueTestsAt indices vectors = nubBy comparer vectors
+	where
+		comparer a b = (selector a) == (selector b)
+		selector x = map (x !!) indices
 
 getInputsList :: Tests -> [Identifier]
 getInputsList = getIOs isInputsBlock

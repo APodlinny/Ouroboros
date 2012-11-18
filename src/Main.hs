@@ -54,18 +54,9 @@ main = do
 
     analisysResult <- analiseScheme parameters noRecScheme (maxCopies parameters) (faults faultsFromFile)
 
-    putStrLn "Writing test file"
+    putStrLn "Writing test file"--
     writeFile ((nameWithoutExtention srcName) ++ ".test") $ show analisysResult
     putStrLn "Exiting"
-    
-
-{-main = do
-    faults <- Strict.readFile "scheme.flt" >>= (return . parseFaultsFile)
-    scheme <- Strict.readFile "scheme.bench" >>= (return . deafenStateOutputs . removeRecursions . programToScheme . parseBenchFile)
-    writeFile "scheme.bench.out" $ show $ programFromScheme scheme
-    runAtalanta "scheme.bench.out" "scheme.flt"
-    tests <- Strict.readFile "scheme.test" >>= (return . parseTestsFile)
-    print $ repackTests scheme tests-}
 
 analiseScheme :: Parameters -> Scheme -> Int -> [Fault] -> IO Tests
 analiseScheme parameters noRecScheme maxCopies faults = do
@@ -81,7 +72,7 @@ analiseScheme parameters noRecScheme maxCopies faults = do
     where
         iteration :: Int -> Int -> [Fault] -> Tests -> IO Tests
         iteration copies step faults lastTests = do
-            putStrLn $ "Transforming scheme (" ++ (show copies) ++ " copy, " ++ (show step) ++ " step)"
+            putStrLn $ "\n\tTransforming scheme (" ++ (show copies) ++ " copy, " ++ (show step) ++ " step)"
             schemeCopied <- evaluate $ copySchemeTimes copies step noRecScheme
             schemeDst <- evaluate $ deafenStateOutputs schemeCopied
 
@@ -89,19 +80,20 @@ analiseScheme parameters noRecScheme maxCopies faults = do
             let faultFile = (fltFile parameters) ++ ".tmp"
             let testFile = (nameWithoutExtention (srcFile parameters)) ++ ".test"
 
-            putStrLn "Writing transformed scheme"
+            putStrLn "\tWriting transformed scheme"
             writeFile benchFile $ 
                 show $ 
                 programFromScheme schemeDst
 
-            putStrLn "Writing faults file"
+            putStrLn "\tWriting faults file"
             writeFile faultFile $
                 show $
                 Faults faults
 
-            putStrLn "Analising transformed scheme with Atalanta"
+            putStrLn "\tAnalising transformed scheme with Atalanta"
             runAtalanta benchFile faultFile
 
+            putStrLn "\tAnalising produced tests"
             tests <- Strict.readFile testFile >>= (return . parseTestsFile)
             let repackedTests = repackTests schemeDst tests
             
@@ -118,10 +110,10 @@ analiseScheme parameters noRecScheme maxCopies faults = do
             let newTests = addTextBlocks lastTests (blocks $ additionalTests)
             
             if length untestedFaults == 0 then do
-                putStrLn "Analisys is finished, forming output test file"
+                putStrLn "\tAnalisys is finished, forming output test file"
                 return newTests
             else do
-                putStrLn "Untested faults at current step:"
+                putStrLn "\tUntested faults at current step:"
                 putStrLn $ join ", " $ map show untestedFaults
 
                 if step < (copies - 1) then
@@ -129,7 +121,7 @@ analiseScheme parameters noRecScheme maxCopies faults = do
                 else if copies < maxCopies then
                     iteration (copies + 1) 0 untestedFaults newTests
                 else do
-                    putStrLn "Can't generate tests for remained faults."
+                    putStrLn "\tCan't generate tests for remained faults."
                     return newTests
 
 

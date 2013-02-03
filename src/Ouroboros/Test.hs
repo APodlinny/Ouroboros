@@ -24,6 +24,8 @@ import Ouroboros.Test.Language
 import Ouroboros.Scheme
 import Ouroboros.Scheme.Common
 
+import qualified Data.ByteString.Char8 as B
+
 addTextBlocks :: Tests -> [TextBlock] -> Tests
 addTextBlocks tests newBlocks = Tests {
 	blocks = (blocks tests) ++ newBlocks
@@ -65,7 +67,8 @@ removeUnnecessaryInfo scheme tests = result
 			tests = map removeUnnecessary ts
 		}
 			where
-				removeUnnecessary test = map (test !!) $ filter (`elem` necessary) $ [0 .. length test - 1]
+				removeUnnecessary :: TestVector -> TestVector
+				removeUnnecessary test = B.pack $ map (test `B.index`) $ filter (`elem` necessary) $ [0 .. B.length test - 1]
 
 getTestedFaults :: Scheme -> Tests -> [Fault]
 getTestedFaults scheme tests = filter (isTestPacked scheme tests) faultsFromTest
@@ -97,13 +100,13 @@ isBlockPacked scheme tests (FaultDescription _ vectors) = any (all (== 'x') . st
 		state = stateIOs scheme
 		stateIndices = stateInputIndices
 		stateInputIndices = getIndices (`elem` state) id $ getInputsList tests
-		statePositions x = map (x !!) stateIndices
+		statePositions x = map (x `B.index`) stateIndices
 
 isBlockPacked _ _ _ = True
 
 repackTests :: Scheme -> Tests -> Tests
 repackTests scheme tests = Tests {
-	blocks = map repackBlock $ blocks tests
+	blocks = map repackBlock $ packSimilarBlocks $ blocks tests
 }
 	where
 		repackBlock = repackTestsGroup varInfo
@@ -128,6 +131,23 @@ repackTests scheme tests = Tests {
 
 		ioIndexDiff = 1 + (length $ getInputsList tests)
 
+packSimilarBlocks :: [TextBlock] -> [TextBlock]
+packSimilarBlocks blocks = concated
+	where
+		faultBlocks = filter isFaultBlock blocks
+		noIndexName name = Identifier $ getNameWithoutIndex $ str name
+		noIndexFault (Node n f) = Node (noIndexName n) f
+		noIndexFault (Junction (n1, n2) f) = Junction ((noIndexName n1), (noIndexName n2)) f
+		noIndexFaultDesc (FaultDescription fault ts) = (FaultDescription (noIndexFault fault) ts)
+
+		similarFaultBlocks = map noIndexFaultDesc faultBlocks
+
+		similarity faultDesc = show $ fault faultDesc
+		grouped = groupby similarity similarFaultBlocks
+		concated = map concatGroup grouped
+
+		concatGroup group = FaultDescription (noIndexFault $ fault $ head group) $ concat $ map tests group
+
 repackTestsGroup :: ([Int], [Int], [Int]) -> TextBlock -> TextBlock
 repackTestsGroup portsInfo (FaultDescription f ts) = FaultDescription {
 	fault = f,
@@ -135,53 +155,54 @@ repackTestsGroup portsInfo (FaultDescription f ts) = FaultDescription {
 }
 repackTestsGroup _ x = x
 
-packTests :: ([Int], [Int], [Int]) -> [String] -> [String]
+packTests :: ([Int], [Int], [Int]) -> TestVectors -> TestVectors
 packTests (ports, states, primary) tests = 
 	uniqueTestsAt primary $
 	map fromJust $ 
 	filter isJust packedGroups
 	
 	where
-		unique = nub tests
-		grouped = groupby (portVars ports) unique
-		portVars indices v = map (v !!) indices
+		grouped' = groupby (portVars ports) tests
+		grouped = map nub grouped'
+
+		portVars indices v = map (v `B.index`) indices
 		stateCombinations = 2 ^ (length states)
 		packedGroups = map packGroup grouped
-		indices = [0 .. (length $ head tests) - 1]
+		indices = [0 .. (B.length $ head tests) - 1]
 		
-		packGroup :: [String] -> Maybe String
+		packGroup :: [TestVector] -> Maybe TestVector
 		packGroup group = if (length group < stateCombinations) || (length group == 1) then
 								Nothing
 						  else
-								Just $ map setter indices
+								Just $ B.pack $map setter indices
 						  where
-								setter i = if elem i states then 'x' else (head group) !! i
+								setter i = if elem i states then 'x' else B.index (head group) i
 
-unpackTests :: [String] -> [String]
+unpackTests :: TestVectors -> TestVectors
 unpackTests [] = []
 unpackTests (t : ts) = 
 	case xPosition of
 		Nothing -> t : (unpackTests ts)
 		Just n -> unpackTests ((ta n) : (tb n) : ts)
 	where
-		xPosition = elemIndex 'x' t
+		xPosition = B.elemIndex 'x' t
 		ta pos = setVar pos '0' t
 		tb pos = setVar pos '1' t
 
-getVar :: Int -> String -> Char
-getVar position vector = head $ drop position vector
+--getVar :: Int -> B.ByteString -> Char
+--getVar position vector = head $ drop position vector
 
-setVar :: Int -> Char -> String -> String
-setVar position bit vector = map setter indices
+setVar :: Int -> Char -> B.ByteString -> B.ByteString
+setVar position bit vector = B.pack $ map setter indices
 	where
-		indices = [0 .. (length vector) - 1]
-		setter i = if i == position then bit else vector !! i
+		indices = [0 .. (B.length vector) - 1]
+		setter i = if i == position then bit else B.index vector i
 
-uniqueTestsAt :: [Int] -> [String] -> [String]
+uniqueTestsAt :: [Int] -> TestVectors -> TestVectors
 uniqueTestsAt indices vectors = nubBy comparer vectors
 	where
 		comparer a b = (selector a) == (selector b)
-		selector x = map (x !!) indices
+		selector x = map (x `B.index`) indices
 
 getInputsList :: Tests -> [Identifier]
 getInputsList = getIOs isInputsBlock

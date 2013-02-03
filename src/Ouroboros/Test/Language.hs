@@ -4,10 +4,13 @@ module Ouroboros.Test.Language (
 	Tests(..),
 	TextBlock(..),
 	inputsMessage,
-	outputsMessage
+	outputsMessage,
+	TestVector,
+	TestVectors
 ) where
 
 import qualified Ouroboros.Bench.Language as AST
+import qualified Data.ByteString.Char8 as B
 import Ouroboros.Fault.Language
 import Ouroboros.Common
 
@@ -27,8 +30,11 @@ data TextBlock =
 	} |
 	FaultDescription {
 		fault :: Fault,
-		tests :: [String]
-	}
+		tests :: TestVectors
+	} deriving (Ord, Eq)
+
+type TestVectors = [TestVector]
+type TestVector = B.ByteString
 
 instance Show Tests where
 	show (Tests blocks) = concat $ map show blocks
@@ -43,8 +49,8 @@ showNodesList :: String -> [Identifier] -> String
 showNodesList description nodes = "* " ++ description ++ "\n  " ++
 	(join " " $ map show nodes) ++ "\n"
 
-showTest :: Int -> String -> String
-showTest i x = "      " ++ (show (i + 1)) ++ ": " ++ x ++ "\n"
+showTest :: Int -> B.ByteString -> String
+showTest i x = "      " ++ (show (i + 1)) ++ ": " ++ (B.unpack x) ++ "\n"
 
 inputsMessage :: String
 inputsMessage = "Primary inputs :"

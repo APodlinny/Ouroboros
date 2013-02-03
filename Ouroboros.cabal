@@ -11,8 +11,9 @@ executable Ouroboros
                    parsec,
                    containers,
                    process,
-                   strict
-  ghc-options:     -Wall -fno-warn-unused-do-bind
+                   strict,
+                   bytestring
+  ghc-options:     -Wall -fno-warn-unused-do-bind -prof -auto-all -fforce-recomp
   other-modules:   Ouroboros.Common
                    Ouroboros.Bench,
                    Ouroboros.Bench.Language,

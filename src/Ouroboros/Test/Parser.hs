@@ -9,6 +9,8 @@ import Ouroboros.Test.Language
 import Ouroboros.Bench.Parser (identifier, eol)
 import Ouroboros.Fault.Parser (parseFault)
 
+import qualified Data.ByteString.Char8 as B
+
 parseTestsFile :: String -> Tests
 parseTestsFile str = unpackEither $ parse parseBlocks "" str
 
@@ -68,7 +70,7 @@ parseFaultDescription = do
 	eol
 	ts <- many parseTestVector
 	many eol
-	return $ FaultDescription f ts
+	return $ FaultDescription f (map B.pack ts)
 
 parseTestVector :: Parser String
 parseTestVector = do

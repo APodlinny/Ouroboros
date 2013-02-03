@@ -21,9 +21,9 @@ data Fault =
 	Junction { 
 		nodes :: (Identifier, Identifier), 
 		faultType :: FaultType 
-	} deriving Eq
+	} deriving (Eq, Ord)
 
-data FaultType = AtZero | AtOne deriving Eq
+data FaultType = AtZero | AtOne deriving (Eq, Ord)
 
 instance Show FaultType where
 	show AtZero = "/0"

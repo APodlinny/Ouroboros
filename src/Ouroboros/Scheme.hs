@@ -29,19 +29,14 @@ import Ouroboros.Scheme.Copy
 import Ouroboros.Scheme.Concatenate
 import Ouroboros.Scheme.Common
 
-copySchemeTimes :: Int -> Int -> Scheme -> Scheme
-copySchemeTimes count step s = iterate count step s s
+copySchemeTimes :: Int -> Scheme -> Scheme
+copySchemeTimes count s = iterate count s s
    where
-      iterate 1 _ lastScheme  _ = lastScheme
+      iterate 1 lastScheme  _ = lastScheme
 
-      iterate count 0 lastScheme source = iterate (count - 1) 0 concated newScheme
+      iterate count lastScheme source = iterate (count - 1) concated newScheme
          where
             concated = concat lastScheme newScheme
-            newScheme = copyScheme source
-
-      iterate count step lastScheme source = iterate (count - 1) (step - 1) concated newScheme
-         where
-            concated = concat newScheme lastScheme
             newScheme = copyScheme source
 
 concat :: Scheme -> Scheme -> Scheme
